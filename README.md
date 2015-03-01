@@ -6,6 +6,8 @@ Files : Roomba.cpp, Roomba.h
 
 This library is complete and self contained and will run only on Mac, Linux, Raspberry-PI and Beaglebone (should run without any problem, but I have not tested it yet) 
 
+````NOTE: This will not work in Windows```` 
+
 To communicate with iCreate2 you need the FTDI cable like the one shown below 
 
 ![Cable](./images/iCreateCable.png)
