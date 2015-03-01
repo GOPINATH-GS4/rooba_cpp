@@ -63,13 +63,14 @@ int main(int argc, const char * argv[]) {
     //A
     songSequence[22] = 93;
     songSequence[23] = 32;
-    
+   
+    // 12 Midi sequences from the array  
     r->createSong(0, 12, songSequence);
     r->playSong(0);
-    r->spin(1);
-    sleep(5);
-    //r->drive(500, 0);
+    r->spin(1); // -1 for clockwise spin
     sleep(10);
-    r->stop();
+    //r->drive(500, 0); // Velocity and angle
+    r->stop(); // Finally stop the robot
+    
     return 0;
 }
