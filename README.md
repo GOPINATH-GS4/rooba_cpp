@@ -13,6 +13,10 @@ To communicate with iCreate2 you need the FTDI cable like the one shown below
 
 If you dont have one you can easily hack one, please follow the instructions in these links to make one yourself, ````Note: The serial port in Roomba iCreate2 is a miniDin connector````
 
+[link](http://www.irobot.com/filelibrary/pdfs/hrd/create/Create%20Open%20Interface_v2.pdf)
+
+
+
 The main.cpp contains a sample of how to use the library, Right now the events supported are only bump events, I will be making changes to add more events and features
 
 Compiling and running the main.cpp (sample program)
