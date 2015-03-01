@@ -23,7 +23,8 @@ The main.cpp contains a sample of how to use the library, Right now the events s
 
 Compiling and running the main.cpp (sample program)
 
-First make the object files 
+Make sure you change the **"/dev/tty.usbserial-DA017QCF"** to the device attached to your system when you connect your Roomba 
+
 
 ````
 
