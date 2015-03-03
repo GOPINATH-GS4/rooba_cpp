@@ -19,20 +19,47 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <signal.h>
+#include <ctype.h>
+#include <iostream>
+#include <stdlib.h>
 
+#define MAX_EVENTS 100
 #endif /* defined(__Roomba__Roomba__) */
 using namespace std;
 
-class Roomba {
+#define STREAM_HEADER 19 
+#define BUFFER_LIMIT 1024
 
+typedef  struct EVENTS_INFO {
+    char *event;
+    int packetId;
+    int packetLength;
+    int eventMask;
+} EVENT_INFO;
+
+typedef struct EVENTS {
+    EVENT_INFO event;
+    void (*f)(char *event, int value);
+} EVENTS;
+
+typedef struct PACKET {
+    int packetId;
+    int value;
+} PACKET;
+
+class Roomba {
     
+   
 private:
     unordered_map <string, int> cmds;
     int fd;
     bool isOpen;
     void (*event)(char *);
     int eventPid;
-  
+    
+    unordered_map<char *, EVENTS > events;
+    
+    EVENT_INFO eventInfo[MAX_EVENTS];
     
     void initializeCommands();
     void sendCommand(string cmd);
@@ -40,7 +67,9 @@ private:
     void sendCommand(string cmd, int value);
     static bool setBaudRate(int fd, int speed);
     static void sleepMilliSecond(int ms);
-    void setEventListener(void (*f)(char *));
+    void streamPacket(char *buffer, int index);
+    void print(char *buffer, int index);
+    void setEventListener();
     bool robotReady();
     
 public:
@@ -52,7 +81,6 @@ public:
     void printCommands();
     void spin(int direction);
     void stop();
-
     void drive(int velocity, int angle);
-    void bumpSignal(void (*f)(char *));
+    void bumpSignalEvent(void (*f)(char *, int));
 };

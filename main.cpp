@@ -6,11 +6,11 @@
 //  Copyright (c) 2015 org.koneksahealth.com. All rights reserved.
 //
 
-#include <iostream>
+
 #include "Roomba.h"
 
-void eventf(char *buf) {
-    printf("%s\n", buf);
+void eventf(char *event, int value) {
+    printf("%s:%d\n", event, value);
 }
 int main(int argc, const char * argv[]) {
     
@@ -23,7 +23,7 @@ int main(int argc, const char * argv[]) {
     else
         cout << "Failed to initialize robot" << endl;
     
-    r->bumpSignal(eventf);
+    r->bumpSignalEvent(eventf);
     array<int, 32> songSequence;
     
     // GGGAGG GAABGA
@@ -67,7 +67,7 @@ int main(int argc, const char * argv[]) {
     // 12 Midi sequences from the array  
     r->createSong(0, 12, songSequence);
     r->playSong(0);
-    r->spin(1); // -1 for clockwise spin
+    //r->spin(1); // -1 for clockwise spin
     sleep(10);
     //r->drive(500, 0); // Velocity and angle
     r->stop(); // Finally stop the robot

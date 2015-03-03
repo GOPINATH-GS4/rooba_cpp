@@ -90,18 +90,46 @@ void Roomba::initializeCommands() {
     this->cmds["PASSIVE"] = 128;
     this->cmds["STREAM"] = 148;
     
+    this->eventInfo[0].event = (char *)"BUMP";
+    this->eventInfo[0].packetId = 7;
+    this->eventInfo[0].packetLength = 1;
+    this->eventInfo[0].eventMask = 0x1f;
+    
 }
 
-void Roomba::bumpSignal(void (*f)(char *)) {
+void Roomba::bumpSignalEvent(void (*f)(char *, int)) {
+    
     if (!robotReady()) return;
     
     if (this->eventPid != -1)
         kill(this->eventPid, SIGTERM);
     
+    
     sendCommand(this->cmds["STREAM"]);
-    sendCommand(1);
-    sendCommand(7);
-    setEventListener(f);
+    int index = 0;
+    bool found = false;
+    while (strcmp(this->eventInfo[index].event,"")  != 0 && index < MAX_EVENTS ) {
+        if (!strcmp(this->eventInfo[index].event, "BUMP")) {
+            found = true;
+            break;
+        };
+        index++;
+    }
+    if (found) {
+        this->events[(char *) "BUMP"].event = this->eventInfo[index];
+        this->events[(char *) "BUMP"].f = f;
+    }
+    else {
+        return;
+    }
+    
+    sendCommand((int) this->events.size());
+    
+    for (auto v : this->events) {
+        sendCommand(v.second.event.packetId);
+    }
+   
+    setEventListener();
 
 }
 bool Roomba::getStatus() {
@@ -163,7 +191,6 @@ void Roomba::drive(int velocity, int angle) {
     int angle1 = angle & 0xff00;
     int angle2 = angle & 0x00ff;
     sendCommand(this->cmds["DRIVE"]);
-    //printf("Drive1 %d, Drive 2 %d, angle1 %d, angle2 %d\n", speed1, speed2, angle1, angle2);
     sendCommand(speed1);
     sendCommand(speed2);
     sendCommand(angle1);
@@ -172,11 +199,12 @@ void Roomba::drive(int velocity, int angle) {
     
 }
 
-void Roomba::setEventListener(void (*f)(char *)) {
+void Roomba::setEventListener() {
 
     if (!robotReady()) return;
-    this->event = f;
+    
     int childPid = 0;
+    
     if ((childPid  = fork()) == 0) {
         fd_set fd_set, read_set;
         FD_ZERO (&fd_set);
@@ -189,19 +217,23 @@ void Roomba::setEventListener(void (*f)(char *)) {
         read_set = fd_set;
         size_t n;
         int c;
-    
+        char buffer[BUFFER_LIMIT];
+        int index  = 0;
+        
         if (FD_ISSET(this->fd, &fd_set)) {
             while((n = read(this->fd, &c, 1)) > 0) {
-             
-                if ((c & 0x01) == 0x01) {
-                    f((char *)"Bump Right");
+                buffer[index] = c;
+                if(n == -1) {
+                    continue;
                 }
-                else if ((c & 0x02) == 0x02) {
-                    f((char *)"Bump Left");
+                if (buffer[index] == STREAM_HEADER && index > 0 && n > 0) {
+                    streamPacket(buffer, index);
+                    index = 0;
                 }
-                else {
-                    f((char *) "No bump");
-                }
+                else
+                    index++;
+                if(index >= BUFFER_LIMIT) index = 0;
+                
             }
 
         }
@@ -210,10 +242,47 @@ void Roomba::setEventListener(void (*f)(char *)) {
     return;
 }
 
+void Roomba::print(char *buffer, int index) {
+    printf("[ ");
+    for (int i = 0; i <= index; i++) {
+        printf("%d,", buffer[i]);
+    }
+    
+    printf(" ]\n");
+
+}
+void Roomba::streamPacket(char *buffer, int index) {
+    int i = 0;
+
+    int checksum = 0;
+    
+    for (int i = 0; i < index; i++) checksum += buffer[i];
+    print(buffer, index-1);
+    
+    if (checksum != -1 * STREAM_HEADER) return;
+    int no_of_packets = buffer[0];
+    i = 1;
+    while (no_of_packets > 0  && true) {
+        for (auto v : this->events) {
+            if (v.second.event.packetId == buffer[i]) {
+                
+                for (int k = 0; k < v.second.event.packetLength; k++) {
+                    v.second.f(v.first, buffer[i+k+1]);
+                }
+
+                i += v.second.event.packetLength;
+            }
+        }
+        no_of_packets -= i;
+    }
+    
+    
+    return;
+}
+
 Roomba::Roomba(char *d, int baudrate) {
     this->isOpen = false;
     this->eventPid = -1;
-    
     initializeCommands();
     printCommands();
     this->fd = open(d, O_RDWR | O_NONBLOCK );

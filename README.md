@@ -52,11 +52,19 @@ Sample code
 //  Copyright (c) 2015 org.koneksahealth.com. All rights reserved.
 //
 
-#include <iostream>
+//
+//  main.cpp
+//  Roomba
+//
+//  Created by janakiraman gopinath on 2/27/15.
+//  Copyright (c) 2015 org.koneksahealth.com. All rights reserved.
+//
+
+
 #include "Roomba.h"
 
-void eventf(char *buf) {
-    printf("%s\n", buf);
+void eventf(char *event, int value) {
+    printf("%s:%d\n", event, value);
 }
 int main(int argc, const char * argv[]) {
     
@@ -69,7 +77,7 @@ int main(int argc, const char * argv[]) {
     else
         cout << "Failed to initialize robot" << endl;
     
-    r->bumpSignal(eventf);
+    r->bumpSignalEvent(eventf);
     array<int, 32> songSequence;
     
     // GGGAGG GAABGA
@@ -119,5 +127,6 @@ int main(int argc, const char * argv[]) {
     r->stop(); // Finally stop the robot
     
     return 0;
+}
 }
 ````
