@@ -30,6 +30,14 @@ using namespace std;
 #define STREAM_HEADER 19 
 #define BUFFER_LIMIT 1024
 
+#define BUMP_RIGHT(value)               ((value & 0x01) == 0x01)
+#define BUMP_LEFT(value)                ((value & 0x02) == 0x02)
+#define WHEEL_DROP_RIGHT(value)         ((value & 0x04) == 0x04)
+#define WHEEL_DROP_LEFT(value)          ((value & 0x08) == 0x08)
+#define WHEEL_DROP_CASTER(value)        ((value & 0x10) == 0x10)
+
+#define SONG_PLAYING(value)             ((value & 0x01) == 0x01) 
+
 typedef  struct EVENTS_INFO {
     char *event;
     int packetId;
@@ -71,6 +79,7 @@ private:
     void print(char *buffer, int index);
     void setEventListener();
     bool robotReady();
+    void setEvent(char *eventName, void (*f)(char *, int));
     
 public:
 
@@ -82,5 +91,6 @@ public:
     void spin(int direction);
     void stop();
     void drive(int velocity, int angle);
-    void bumpSignalEvent(void (*f)(char *, int));
+    void bumpEvent(void (*f)(char *, int));
+    void songPlayingEvent(void (*f)(char *, int));
 };

@@ -95,9 +95,20 @@ void Roomba::initializeCommands() {
     this->eventInfo[0].packetLength = 1;
     this->eventInfo[0].eventMask = 0x1f;
     
+    this->eventInfo[1].event = (char *)"SONG_SELECTED";
+    this->eventInfo[1].packetId = 36;
+    this->eventInfo[1].packetLength = 1;
+    this->eventInfo[1].eventMask = 0xff;
+
+    this->eventInfo[2].event = (char *)"SONG_PLAYING";
+    this->eventInfo[2].packetId = 37;
+    this->eventInfo[2].packetLength = 1;
+    this->eventInfo[2].eventMask = 0xff;
+
+    
 }
 
-void Roomba::bumpSignalEvent(void (*f)(char *, int)) {
+void Roomba::setEvent(char *eventName, void (*f)(char *, int)) {
     
     if (!robotReady()) return;
     
@@ -108,16 +119,18 @@ void Roomba::bumpSignalEvent(void (*f)(char *, int)) {
     sendCommand(this->cmds["STREAM"]);
     int index = 0;
     bool found = false;
+    printf("event_name:%s\n", eventName);
     while (strcmp(this->eventInfo[index].event,"")  != 0 && index < MAX_EVENTS ) {
-        if (!strcmp(this->eventInfo[index].event, "BUMP")) {
+        if (!strcmp(this->eventInfo[index].event, eventName)) {
             found = true;
             break;
         };
         index++;
     }
+
     if (found) {
-        this->events[(char *) "BUMP"].event = this->eventInfo[index];
-        this->events[(char *) "BUMP"].f = f;
+        this->events[(char *) eventName].event = this->eventInfo[index];
+        this->events[(char *) eventName].f = f;
     }
     else {
         return;
@@ -128,9 +141,16 @@ void Roomba::bumpSignalEvent(void (*f)(char *, int)) {
     for (auto v : this->events) {
         sendCommand(v.second.event.packetId);
     }
-   
+    
     setEventListener();
 
+
+}
+void Roomba::songPlayingEvent(void (*f)(char *, int)) {
+    this->setEvent((char *)"SONG_PLAYING", f);
+}
+void Roomba::bumpEvent(void (*f)(char *, int)) {
+    this->setEvent((char *)"BUMP", f);
 }
 bool Roomba::getStatus() {
     return this->isOpen;
@@ -170,6 +190,7 @@ void Roomba::createSong(int songNumber,  int midiLength, array<int, 32> midiSequ
     sendCommand("SONG");
     sendCommand(songNumber);
     sendCommand(midiLength);
+    
     for (int i = 0; i < midiLength * 2; i++) {
         sendCommand(midiSequence.at(i));
     }
@@ -257,20 +278,23 @@ void Roomba::streamPacket(char *buffer, int index) {
     int checksum = 0;
     
     for (int i = 0; i < index; i++) checksum += buffer[i];
-    print(buffer, index-1);
+   
     
     if (checksum != -1 * STREAM_HEADER) return;
+
+    //print(buffer, index-1);
     int no_of_packets = buffer[0];
     i = 1;
+    
     while (no_of_packets > 0  && true) {
         for (auto v : this->events) {
             if (v.second.event.packetId == buffer[i]) {
-                
                 for (int k = 0; k < v.second.event.packetLength; k++) {
-                    v.second.f(v.first, buffer[i+k+1]);
+                    if (v.second.event.eventMask & buffer[i + k + 1]) {
+                        v.second.f(v.first, buffer[i+k+1]);                    }
                 }
 
-                i += v.second.event.packetLength;
+                i += v.second.event.packetLength + 1;
             }
         }
         no_of_packets -= i;

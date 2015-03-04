@@ -44,14 +44,6 @@ Sample code
 
 ````
 	
-	//
-//  main.cpp
-//  Roomba
-//
-//  Created by janakiraman gopinath on 2/27/15.
-//  Copyright (c) 2015 org.koneksahealth.com. All rights reserved.
-//
-
 //
 //  main.cpp
 //  Roomba
@@ -64,8 +56,24 @@ Sample code
 #include "Roomba.h"
 
 void eventf(char *event, int value) {
-    printf("%s:%d\n", event, value);
+    
+  
+    if(strcmp(event, "BUMP") == 0 ) {
+        printf("Event : %s\n", event);
+        if (BUMP_RIGHT(value)) printf("Bump Right\n");
+        if (BUMP_LEFT(value)) printf("Bump Left\n");
+        if (WHEEL_DROP_LEFT(value)) printf("Wheel Drop Left\n");
+        if (WHEEL_DROP_RIGHT(value)) printf("Wheel Drop Right\n");
+        if (WHEEL_DROP_CASTER(value)) printf("Wheel Drop Caster\n");
+    } else if (strcmp(event, "SONG_PLAYING") == 0) {
+        printf("Event : %s\n", event);
+        if (SONG_PLAYING(value)) printf("Song playing\n");
+    }
+
 }
+
+
+
 int main(int argc, const char * argv[]) {
     
     Roomba *r = new Roomba((char *) "/dev/tty.usbserial-DA017QCF", B115200);
@@ -77,56 +85,19 @@ int main(int argc, const char * argv[]) {
     else
         cout << "Failed to initialize robot" << endl;
     
-    r->bumpSignalEvent(eventf);
-    array<int, 32> songSequence;
-    
+    r->bumpEvent(eventf);
     // GGGAGG GAABGA
-    //G
-    songSequence[0] = 91;
-    songSequence[1] = 32;
-    //G
-    songSequence[2] = 91;
-    songSequence[3] = 32;
-    //G
-    songSequence[4] = 91;
-    songSequence[5] = 32;
-    //A
-    songSequence[6] = 93;
-    songSequence[7] = 32;
-    //G
-    songSequence[8] = 91;
-    songSequence[9] = 32;
-    //G
-    songSequence[10] = 91;
-    songSequence[11] = 48;
-    // G
-    songSequence[12] = 91;
-    songSequence[13] = 32;
-    //A
-    songSequence[14] = 93;
-    songSequence[15] = 32;
-    //A
-    songSequence[16] = 93;
-    songSequence[17] = 32;
-    //B
-    songSequence[18] = 95;
-    songSequence[19] = 32;
-    //G
-    songSequence[20] = 91;
-    songSequence[21] = 32;
-    //A
-    songSequence[22] = 93;
-    songSequence[23] = 32;
+    array<int, 32> songSequence = { 91,32,91,32,91,32,93,32,91,32,91,48,91,32,93,32, 93,32,95,32,91,32,93,32 };
    
     // 12 Midi sequences from the array  
     r->createSong(0, 12, songSequence);
+    r->songPlayingEvent(eventf);
     r->playSong(0);
-    r->spin(1); // -1 for clockwise spin
+    //r->spin(1); // -1 for clockwise spin
     sleep(10);
     //r->drive(500, 0); // Velocity and angle
     r->stop(); // Finally stop the robot
     
     return 0;
-}
 }
 ````
