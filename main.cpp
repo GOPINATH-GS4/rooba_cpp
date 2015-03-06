@@ -19,9 +19,13 @@ void eventf(char *event, int value) {
         if (WHEEL_DROP_LEFT(value)) printf("Wheel Drop Left\n");
         if (WHEEL_DROP_RIGHT(value)) printf("Wheel Drop Right\n");
         if (WHEEL_DROP_CASTER(value)) printf("Wheel Drop Caster\n");
-    } else if (strcmp(event, "SONG_PLAYING") == 0) {
+    }
+    if (strcmp(event, "SONG_PLAYING") == 0) {
         printf("Event : %s\n", event);
         if (SONG_PLAYING(value)) printf("Song playing\n");
+    }
+    if (strcmp(event, "VIRTUAL_WALL") == 0) {
+        if (VIRTUAL_WALL_DETECTED(value)) printf("Virtual wall detected\n");
     }
 
 }
@@ -40,6 +44,7 @@ int main(int argc, const char * argv[]) {
         cout << "Failed to initialize robot" << endl;
     
     r->bumpEvent(eventf);
+    r->virtualWallEvent(eventf);
     // GGGAGG GAABGA
     array<int, 32> songSequence = { 91,32,91,32,91,32,93,32,91,32,91,48,91,32,93,32, 93,32,95,32,91,32,93,32 };
    
@@ -48,7 +53,7 @@ int main(int argc, const char * argv[]) {
     r->songPlayingEvent(eventf);
     r->playSong(0);
     //r->spin(1); // -1 for clockwise spin
-    sleep(10);
+    sleep(30);
     //r->drive(500, 0); // Velocity and angle
     r->stop(); // Finally stop the robot
     

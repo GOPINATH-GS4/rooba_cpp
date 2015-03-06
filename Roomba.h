@@ -38,6 +38,9 @@ using namespace std;
 
 #define SONG_PLAYING(value)             ((value & 0x01) == 0x01) 
 
+#define VIRTUAL_WALL_DETECTED(value)    ((value & 0x01) == 0x01)
+
+
 typedef  struct EVENTS_INFO {
     char *event;
     int packetId;
@@ -93,4 +96,5 @@ public:
     void drive(int velocity, int angle);
     void bumpEvent(void (*f)(char *, int));
     void songPlayingEvent(void (*f)(char *, int));
+    void virtualWallEvent(void (*f)(char *, int));
 };

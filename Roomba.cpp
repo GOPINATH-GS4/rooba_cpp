@@ -104,6 +104,11 @@ void Roomba::initializeCommands() {
     this->eventInfo[2].packetId = 37;
     this->eventInfo[2].packetLength = 1;
     this->eventInfo[2].eventMask = 0xff;
+    
+    this->eventInfo[3].event = (char *)"VIRTUAL_WALL";
+    this->eventInfo[3].packetId = 13;
+    this->eventInfo[3].packetLength = 1;
+    this->eventInfo[3].eventMask = 0xff;
 
     
 }
@@ -152,6 +157,11 @@ void Roomba::songPlayingEvent(void (*f)(char *, int)) {
 void Roomba::bumpEvent(void (*f)(char *, int)) {
     this->setEvent((char *)"BUMP", f);
 }
+void Roomba::virtualWallEvent(void (*f)(char *, int)) {
+    this->setEvent((char *)"VIRTUAL_WALL", f);
+}
+
+
 bool Roomba::getStatus() {
     return this->isOpen;
 }
