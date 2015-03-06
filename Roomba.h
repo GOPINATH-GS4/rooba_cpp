@@ -94,6 +94,7 @@ public:
     void spin(int direction);
     void stop();
     void drive(int velocity, int angle);
+    void driveDirect(int rightWheelSpeed, int leftWheelSpeed);
     void bumpEvent(void (*f)(char *, int));
     void songPlayingEvent(void (*f)(char *, int));
     void virtualWallEvent(void (*f)(char *, int));

@@ -53,25 +53,6 @@ bool Roomba::setBaudRate(int fd, int speed) {
     return true;
     
 }
-void Roomba::stop() {
-     if (!robotReady()) return;
-    sendCommand(this->cmds["PASSIVE"]);
-    if(this->eventPid != -1)
-        kill(eventPid, SIGTERM);
-}
-void Roomba::spin(int direction) {
-    sendCommand("DRIVE");
-    sendCommand(255);
-    sendCommand(56);
-    if (direction > 0) {
-        sendCommand(0xff);
-        sendCommand(0xff);
-    } else {
-        sendCommand(0x00);
-        sendCommand(0x01);
-    }
-   
-}
 void Roomba::printCommands() {
   
     for (auto keyValue : this->cmds) {
@@ -87,6 +68,7 @@ void Roomba::initializeCommands() {
     this->cmds["SONG"] = 140;
     this->cmds["PLAY"] = 141;
     this->cmds["DRIVE"] = 137;
+    this->cmds["DRIVE_DIRECT"] = 137;
     this->cmds["PASSIVE"] = 128;
     this->cmds["STREAM"] = 148;
     
@@ -151,6 +133,8 @@ void Roomba::setEvent(char *eventName, void (*f)(char *, int)) {
 
 
 }
+
+
 void Roomba::songPlayingEvent(void (*f)(char *, int)) {
     this->setEvent((char *)"SONG_PLAYING", f);
 }
@@ -159,6 +143,56 @@ void Roomba::bumpEvent(void (*f)(char *, int)) {
 }
 void Roomba::virtualWallEvent(void (*f)(char *, int)) {
     this->setEvent((char *)"VIRTUAL_WALL", f);
+}
+void Roomba::stop() {
+    if (!robotReady()) return;
+    sendCommand(this->cmds["PASSIVE"]);
+    if(this->eventPid != -1)
+        kill(eventPid, SIGTERM);
+}
+void Roomba::spin(int direction) {
+    sendCommand("DRIVE");
+    sendCommand(255);
+    sendCommand(56);
+    if (direction > 0) {
+        sendCommand(0xff);
+        sendCommand(0xff);
+    } else {
+        sendCommand(0x00);
+        sendCommand(0x01);
+    }
+    
+}
+void Roomba::drive(int velocity, int angle) {
+    
+    if (!robotReady()) return;
+    
+    int speed1 = velocity & 0xff00;
+    int speed2 = velocity & 0x00ff;
+    int angle1 = angle & 0xff00;
+    int angle2 = angle & 0x00ff;
+    sendCommand(this->cmds["DRIVE"]);
+    sendCommand(speed1);
+    sendCommand(speed2);
+    sendCommand(angle1);
+    sendCommand(angle2);
+    
+    
+}
+void Roomba::driveDirect(int rightWheelSpeed, int leftWheelSpeed) {
+    
+    if (!robotReady()) return;
+    
+    int rV1 = rightWheelSpeed & 0xff00;
+    int rV2 = rightWheelSpeed & 0x00ff;
+    int lV1 = leftWheelSpeed & 0xff00;
+    int lV2 = leftWheelSpeed & 0x00ff;
+    sendCommand(this->cmds["DRIVE_DIRECT"]);
+    sendCommand(rV1);
+    sendCommand(rV2);
+    sendCommand(lV1);
+    sendCommand(lV2);
+    
 }
 
 
@@ -212,22 +246,6 @@ void Roomba::playSong(int songNumber) {
     
     sendCommand("PLAY");
     sendCommand(songNumber);
-}
-void Roomba::drive(int velocity, int angle) {
-    
-    if (!robotReady()) return;
-    
-    int speed1 = velocity & 0xff00;
-    int speed2 = velocity & 0x00ff;
-    int angle1 = angle & 0xff00;
-    int angle2 = angle & 0x00ff;
-    sendCommand(this->cmds["DRIVE"]);
-    sendCommand(speed1);
-    sendCommand(speed2);
-    sendCommand(angle1);
-    sendCommand(angle2);
-    
-    
 }
 
 void Roomba::setEventListener() {
