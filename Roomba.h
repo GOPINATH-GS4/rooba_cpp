@@ -22,6 +22,10 @@
 #include <ctype.h>
 #include <iostream>
 #include <stdlib.h>
+#include <cstring>
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/select.h>
 
 #define MAX_EVENTS 100
 #endif /* defined(__Roomba__Roomba__) */

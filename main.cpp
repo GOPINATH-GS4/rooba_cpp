@@ -34,7 +34,7 @@ void eventf(char *event, int value) {
 
 int main(int argc, const char * argv[]) {
     
-    Roomba *r = new Roomba((char *) "/dev/tty.usbserial-DA017QCF", B115200);
+    Roomba *r = new Roomba((char *) "/dev/ttyUSB0", B115200);
     
     r->printCommands();
     
@@ -54,7 +54,7 @@ int main(int argc, const char * argv[]) {
     r->playSong(0);
     //r->spin(1); // -1 for clockwise spin
        //r->drive(500, 0); // Velocity and angle
-    r->driveDirect(100, -100);
+    //r->driveDirect(100, -100);
     sleep(30);
 
     r->stop(); // Finally stop the robot

@@ -255,21 +255,21 @@ void Roomba::setEventListener() {
     int childPid = 0;
     
     if ((childPid  = fork()) == 0) {
-        fd_set fd_set, read_set;
-        FD_ZERO (&fd_set);
-        FD_SET (this->fd, &fd_set);
+        fd_set fdset, read_set;
+        FD_ZERO (&fdset);
+        FD_SET (this->fd, &fdset);
         int ret;
-        if ((ret = select (this->fd + 1, &fd_set, 0,  0,  0)) < 0) {
+        if ((ret = select (this->fd + 1, &fdset, 0,  0,  0)) < 0) {
             perror ("select");
             return;
         }
-        read_set = fd_set;
+        read_set = fdset;
         size_t n;
         int c;
         char buffer[BUFFER_LIMIT];
         int index  = 0;
         
-        if (FD_ISSET(this->fd, &fd_set)) {
+        if (FD_ISSET(this->fd, &fdset)) {
             while((n = read(this->fd, &c, 1)) > 0) {
                 buffer[index] = c;
                 if(n == -1) {
