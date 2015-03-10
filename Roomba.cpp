@@ -311,9 +311,10 @@ void Roomba::streamPacket(char *buffer, int index) {
     for (int i = 0; i < index; i++) checksum += buffer[i];
    
     
-    if (checksum != -1 * STREAM_HEADER) return;
-
-    //print(buffer, index-1);
+    print(buffer, index-1);
+  
+    if (checksum != -1 * STREAM_HEADER  && checksum != (255 - STREAM_HEADER)) return;
+    printf("Checksum = %d\n", checksum);
     int no_of_packets = buffer[0];
     i = 1;
     

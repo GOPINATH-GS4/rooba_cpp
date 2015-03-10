@@ -44,18 +44,18 @@ int main(int argc, const char * argv[]) {
         cout << "Failed to initialize robot" << endl;
     
     r->bumpEvent(eventf);
-    r->virtualWallEvent(eventf);
+    //r->virtualWallEvent(eventf);
     // GGGAGG GAABGA
     array<int, 32> songSequence = { 91,32,91,32,91,32,93,32,91,32,91,42,91,32,93,32, 93,32,95,32,91,32,93,32 };
    
     // 12 Midi sequences from the array  
     r->createSong(0, 12, songSequence);
-    r->songPlayingEvent(eventf);
+    //r->songPlayingEvent(eventf);
     r->playSong(0);
     //r->spin(1); // -1 for clockwise spin
        //r->drive(500, 0); // Velocity and angle
     //r->driveDirect(100, -100);
-    sleep(30);
+    sleep(10);
 
     r->stop(); // Finally stop the robot
     
