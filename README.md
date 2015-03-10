@@ -89,18 +89,28 @@ int main(int argc, const char * argv[]) {
     else
         cout << "Failed to initialize robot" << endl;
     
-    r->bumpEvent(eventf);
-    r->virtualWallEvent(eventf);
+    int events = BUMP_EVENT | SONG_PLAYING_EVENT | VIRTUAL_WALL_EVENT;
+    
+    r->setEvents(events, eventf);
+    r->bumpEvent(eventf); //cannot add events in the middle will get a warning 
+    //r->bumpEvent(eventf);
+
+    //r->songPlayingEvent(eventf);
+ 
+    //r->virtualWallEvent(eventf);
+    
     // GGGAGG GAABGA
-    array<int, 32> songSequence = { 91,32,91,32,91,32,93,32,91,32,91,42,91,32,93,32, 93,32,95,32,91,32,93,32 };
+    array<int, 32> songSequence = { 91,32,91,32,91,32,93,32,91,32,91,42,91,32,93,32,93,32,95,32,91,32,93,32 };
    
     // 12 Midi sequences from the array  
+    
     r->createSong(0, 12, songSequence);
-    r->songPlayingEvent(eventf);
     r->playSong(0);
+    
     //r->spin(1); // -1 for clockwise spin
-       //r->drive(500, 0); // Velocity and angle
-    r->driveDirect(100, -100);
+    //r->drive(500, 0); // Velocity and angle
+    //r->driveDirect(100, -100);
+    
     sleep(30);
 
     r->stop(); // Finally stop the robot

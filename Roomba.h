@@ -29,11 +29,17 @@
 #include <thread>
 
 #define MAX_EVENTS 100
+#define MAX_PACKETS 100
 #endif /* defined(__Roomba__Roomba__) */
 using namespace std;
 
 #define STREAM_HEADER 19 
 #define BUFFER_LIMIT 1024
+
+#define BUMP_EVENT             0x01
+#define VIRTUAL_WALL_EVENT     0x02
+#define SONG_PLAYING_EVENT     0x04
+
 
 #define BUMP_RIGHT(value)               ((value & 0x01) == 0x01)
 #define BUMP_LEFT(value)                ((value & 0x02) == 0x02)
@@ -72,7 +78,10 @@ private:
     bool isOpen;
     void (*event)(char *);
     thread th;
-    bool threadRunning;
+    
+    std::atomic_bool threadRunning;
+    std::atomic_bool finishThread;
+    
     unordered_map<char *, EVENTS > events;
     
     EVENT_INFO eventInfo[MAX_EVENTS];
@@ -87,8 +96,9 @@ private:
     void print(char *buffer, int index);
     static void setEventListener(Roomba *r);
     bool robotReady();
-    void setEvent(char *eventName, void (*f)(char *, int));
-    
+    void destroyThread();
+    void setEvent(char *events[], int total_events, void (*f)(char *, int));
+   
 public:
 
     Roomba(char *device, int baudRate);
@@ -103,4 +113,5 @@ public:
     void bumpEvent(void (*f)(char *, int));
     void songPlayingEvent(void (*f)(char *, int));
     void virtualWallEvent(void (*f)(char *, int));
+    void setEvents(int events, void (*f)(char *, int));
 };

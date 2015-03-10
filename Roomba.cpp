@@ -94,67 +94,115 @@ void Roomba::initializeCommands() {
 
     
 }
+void Roomba::destroyThread() {
+   
+    // Destroy Thread
+    if (this->threadRunning) {
+        this->finishThread = true;
+        while (this->finishThread) sleepMilliSecond(200);
+        this->threadRunning = false;
+    }
 
-void Roomba::setEvent(char *eventName, void (*f)(char *, int)) {
+}
+void Roomba::setEvent(char *events[], int total_events, void (*f)(char *, int)) {
     
     if (!robotReady()) return;
     
-    // Destroy Thread
     if (this->threadRunning) {
-        th.~thread();
-        this->threadRunning = false;
-    }
-    sendCommand(this->cmds["STREAM"]);
-    int index = 0;
-    bool found = false;
-    printf("event_name:%s\n", eventName);
-    while (strcmp(this->eventInfo[index].event,"")  != 0 && index < MAX_EVENTS ) {
-        if (!strcmp(this->eventInfo[index].event, eventName)) {
-            found = true;
-            break;
-        };
-        index++;
-    }
-
-    if (found) {
-        this->events[(char *) eventName].event = this->eventInfo[index];
-        this->events[(char *) eventName].f = f;
-    }
-    else {
+        printf("Cannot intialize events in the middle of a stream");
         return;
     }
     
-    sendCommand((int) this->events.size());
-    
-    for (auto v : this->events) {
-        sendCommand(v.second.event.packetId);
+    int packetIds[MAX_PACKETS];
+    int packet = 0;
+    for (int i = 0; i < total_events; i++) {
+        
+        int index = 0;
+        bool found = false;
+        while (strcmp(this->eventInfo[index].event,"")  != 0 && index < MAX_EVENTS ) {
+            if (!strcmp(this->eventInfo[index].event, events[i])) {
+                found = true;
+                break;
+            };
+            index++;
+        }
+        
+        if (found) {
+            this->events[events[i]].event = this->eventInfo[index];
+            this->events[events[i]].f = f;
+        }
+        else continue;
+        printf("Found event . %s\n", events[i]);
+        //sendCommand((int) this->events.size());
+        
+        packetIds[packet] = this->eventInfo[index].packetId;
+        packet++;
+        for (auto v : this->events) {
+           // packetIds[packet] = v.second.event.packetId;
+           
+           // sendCommand(v.second.event.packetId);
+        }
+
+    }
+
+    sendCommand(this->cmds["STREAM"]);
+    sendCommand(packet);
+    for (int i = 0; i < packet; i++) {
+        sendCommand(packetIds[i]);
     }
     
+    printf("Starting Thread\n");
+    this->threadRunning = true;
     this->th = thread(setEventListener, this);
     this->th.detach();
 }
 
-
+void Roomba::setEvents(int events, void (*f)(char *, int)) {
+    
+    char *ev[MAX_EVENTS];
+    int i = 0;
+    
+    if ((events & BUMP_EVENT) == BUMP_EVENT) {
+        ev[i] = (char *) "BUMP";
+        i++;
+    }
+    if ((events & SONG_PLAYING_EVENT) == SONG_PLAYING_EVENT) {
+        ev[i] = (char *) "SONG_PLAYING";
+        i++;
+    }
+    if ((events & VIRTUAL_WALL_EVENT) == VIRTUAL_WALL_EVENT) {
+        ev[i] = (char *) "VIRTUAL_WALL";
+        i++;
+    }
+    setEvent(ev, i, f);
+    
+}
 void Roomba::songPlayingEvent(void (*f)(char *, int)) {
-    this->setEvent((char *)"SONG_PLAYING", f);
+
+    char *events[MAX_EVENTS];
+    events[0] = (char *) "SONG_PLAYONG";
+    this->setEvent(events, 1,  f);
+
 }
 void Roomba::bumpEvent(void (*f)(char *, int)) {
-    this->setEvent((char *)"BUMP", f);
+
+    char *events[MAX_EVENTS];
+    events[0] = (char *) "BUMP";
+    this->setEvent(events, 1,  f);
+
 }
 void Roomba::virtualWallEvent(void (*f)(char *, int)) {
-    this->setEvent((char *)"VIRTUAL_WALL", f);
+   
+    char *events[MAX_EVENTS];
+    events[0] = (char *) "VIRTUAL_WALL";
+    this->setEvent(events, 1,  f);
 }
 void Roomba::stop() {
     if (!robotReady()) return;
     sendCommand(this->cmds["PASSIVE"]);
     
-    if (this->threadRunning) {
-        th.~thread();
-        this->threadRunning = false;
-    }
-    // Destroy thread
-    
-    
+    destroyThread();
+   
 }
 void Roomba::spin(int direction) {
     sendCommand("DRIVE");
@@ -222,6 +270,8 @@ void Roomba::sendCommand(int value) {
         perror("write");
     }
     sleepMilliSecond(100);
+    printf("-[%d]-\n", value);
+   
 }
 bool Roomba::robotReady() {
     if (!this->getStatus()) {
@@ -258,7 +308,7 @@ void Roomba::setEventListener(Roomba *r) {
 
     if (!r->robotReady()) return;
     
-    
+    r->threadRunning = true;
     fd_set fdset, read_set;
     FD_ZERO (&fdset);
     FD_SET (r->fd, &fdset);
@@ -275,6 +325,12 @@ void Roomba::setEventListener(Roomba *r) {
     
     if (FD_ISSET(r->fd, &fdset)) {
         while((n = read(r->fd, &c, 1)) > 0) {
+            if(r->finishThread) {
+                printf("Asked to exit now ...\n");
+                r->finishThread = false;
+                r->th.~thread();
+                return;
+            }
             buffer[index] = c;
             if(n == -1) {
                 continue;
@@ -311,11 +367,11 @@ void Roomba::streamPacket(char *buffer, int index) {
     for (int i = 0; i < index; i++) checksum += buffer[i];
    
     
-    print(buffer, index-1);
+    //print(buffer, index-1);
   
     if (checksum != -1 * STREAM_HEADER  && checksum != (255 - STREAM_HEADER)) return;
-    printf("Checksum = %d\n", checksum);
     int no_of_packets = buffer[0];
+    
     i = 1;
     
     while (no_of_packets > 0  && true) {
@@ -338,7 +394,10 @@ void Roomba::streamPacket(char *buffer, int index) {
 
 Roomba::Roomba(char *d, int baudrate) {
     this->isOpen = false;
+    
     this->threadRunning = false;
+    this->finishThread = false;
+    
     initializeCommands();
     printCommands();
     this->fd = open(d, O_RDWR | O_NONBLOCK );
