@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/select.h>
+#include <thread>
 
 #define MAX_EVENTS 100
 #endif /* defined(__Roomba__Roomba__) */
@@ -70,8 +71,8 @@ private:
     int fd;
     bool isOpen;
     void (*event)(char *);
-    int eventPid;
-    
+    thread th;
+    bool threadRunning;
     unordered_map<char *, EVENTS > events;
     
     EVENT_INFO eventInfo[MAX_EVENTS];
@@ -84,7 +85,7 @@ private:
     static void sleepMilliSecond(int ms);
     void streamPacket(char *buffer, int index);
     void print(char *buffer, int index);
-    void setEventListener();
+    static void setEventListener(Roomba *r);
     bool robotReady();
     void setEvent(char *eventName, void (*f)(char *, int));
     

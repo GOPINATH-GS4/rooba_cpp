@@ -99,10 +99,11 @@ void Roomba::setEvent(char *eventName, void (*f)(char *, int)) {
     
     if (!robotReady()) return;
     
-    if (this->eventPid != -1)
-        kill(this->eventPid, SIGTERM);
-    
-    
+    // Destroy Thread
+    if (this->threadRunning) {
+        th.~thread();
+        this->threadRunning = false;
+    }
     sendCommand(this->cmds["STREAM"]);
     int index = 0;
     bool found = false;
@@ -129,9 +130,8 @@ void Roomba::setEvent(char *eventName, void (*f)(char *, int)) {
         sendCommand(v.second.event.packetId);
     }
     
-    setEventListener();
-
-
+    this->th = thread(setEventListener, this);
+    this->th.detach();
 }
 
 
@@ -147,8 +147,14 @@ void Roomba::virtualWallEvent(void (*f)(char *, int)) {
 void Roomba::stop() {
     if (!robotReady()) return;
     sendCommand(this->cmds["PASSIVE"]);
-    if(this->eventPid != -1)
-        kill(eventPid, SIGTERM);
+    
+    if (this->threadRunning) {
+        th.~thread();
+        this->threadRunning = false;
+    }
+    // Destroy thread
+    
+    
 }
 void Roomba::spin(int direction) {
     sendCommand("DRIVE");
@@ -248,46 +254,43 @@ void Roomba::playSong(int songNumber) {
     sendCommand(songNumber);
 }
 
-void Roomba::setEventListener() {
+void Roomba::setEventListener(Roomba *r) {
 
-    if (!robotReady()) return;
+    if (!r->robotReady()) return;
     
-    int childPid = 0;
     
-    if ((childPid  = fork()) == 0) {
-        fd_set fdset, read_set;
-        FD_ZERO (&fdset);
-        FD_SET (this->fd, &fdset);
-        int ret;
-        if ((ret = select (this->fd + 1, &fdset, 0,  0,  0)) < 0) {
-            perror ("select");
-            return;
-        }
-        read_set = fdset;
-        size_t n;
-        int c;
-        char buffer[BUFFER_LIMIT];
-        int index  = 0;
-        
-        if (FD_ISSET(this->fd, &fdset)) {
-            while((n = read(this->fd, &c, 1)) > 0) {
-                buffer[index] = c;
-                if(n == -1) {
-                    continue;
-                }
-                if (buffer[index] == STREAM_HEADER && index > 0 && n > 0) {
-                    streamPacket(buffer, index);
-                    index = 0;
-                }
-                else
-                    index++;
-                if(index >= BUFFER_LIMIT) index = 0;
-                
-            }
-
-        }
+    fd_set fdset, read_set;
+    FD_ZERO (&fdset);
+    FD_SET (r->fd, &fdset);
+    int ret;
+    if ((ret = select (r->fd + 1, &fdset, 0,  0,  0)) < 0) {
+        perror ("select");
+        return;
     }
-    this->eventPid = childPid;
+    read_set = fdset;
+    size_t n;
+    int c;
+    char buffer[BUFFER_LIMIT];
+    int index  = 0;
+    
+    if (FD_ISSET(r->fd, &fdset)) {
+        while((n = read(r->fd, &c, 1)) > 0) {
+            buffer[index] = c;
+            if(n == -1) {
+                continue;
+            }
+            if (buffer[index] == STREAM_HEADER && index > 0 && n > 0) {
+                r->streamPacket(buffer, index);
+                index = 0;
+            }
+            else
+                index++;
+            if(index >= BUFFER_LIMIT) index = 0;
+            
+        }
+        
+    }
+
     return;
 }
 
@@ -334,7 +337,7 @@ void Roomba::streamPacket(char *buffer, int index) {
 
 Roomba::Roomba(char *d, int baudrate) {
     this->isOpen = false;
-    this->eventPid = -1;
+    this->threadRunning = false;
     initializeCommands();
     printCommands();
     this->fd = open(d, O_RDWR | O_NONBLOCK );
