@@ -79,8 +79,8 @@ private:
     void (*event)(char *);
     thread th;
     
-    std::atomic_bool threadRunning;
-    std::atomic_bool finishThread;
+    bool threadRunning;
+    bool finishThread;
     
     unordered_map<char *, EVENTS > events;
     
