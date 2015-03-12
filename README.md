@@ -92,7 +92,6 @@ int main(int argc, const char * argv[]) {
     int events = BUMP_EVENT | SONG_PLAYING_EVENT | VIRTUAL_WALL_EVENT;
     
     r->setEvents(events, eventf);
-    r->bumpEvent(eventf); //cannot add events in the middle will get a warning 
     //r->bumpEvent(eventf);
 
     //r->songPlayingEvent(eventf);
@@ -107,11 +106,12 @@ int main(int argc, const char * argv[]) {
     r->createSong(0, 12, songSequence);
     r->playSong(0);
     
-    //r->spin(1); // -1 for clockwise spin
+    r->spin(1); // -1 for clockwise spin
     //r->drive(500, 0); // Velocity and angle
     //r->driveDirect(100, -100);
     
-    sleep(30);
+    //r->bumpEvent(eventf);
+    sleep(10);
 
     r->stop(); // Finally stop the robot
     

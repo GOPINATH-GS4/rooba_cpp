@@ -28,21 +28,20 @@ bool Roomba::setBaudRate(int fd, int speed) {
      Stop bits: 1
      Flow control: None
     */
-    
-    tty.c_cflag |= (CLOCAL | CREAD);
-    tty.c_cflag &= ~PARENB; /* Parity disabled */
-    //tty.c_cflag &= ~CSTOPB;  // No stop bit, but we need one
-    tty.c_cflag &= ~CSIZE;        /* Mask the character size bits */
-    tty.c_cflag |= CS8;           /* CS8 - Selects 8 data bits */
-    tty.c_cflag &= ~CRTSCTS;      /* disable hardware flow control */
+    tty.c_cflag |= (CLOCAL | CREAD | CS8);
+    tty.c_cflag &= ~(PARENB | CSTOPB);
+    tty.c_cflag &= ~CRTSCTS; 
     tty.c_iflag &= ~(IXON | IXOFF | IXANY);           // disable XON XOFF (for transmit and receive)
-    //tty.c_cflag |= CRTSCTS;       /* enable hardware flow control */
+    tty.c_cflag &= ~CSIZE;
+    /* tty.c_cflag &= ~CSIZE;         Mask the character size bits     
+     tty.c_cflag &= ~CRTSCTS;     disable hardware flow control
+    tty.c_iflag &= ~(IXON | IXOFF | IXANY);           // disable XON XOFF (for transmit and receive)
+    //tty.c_cflag |= CRTSCTS;       enable hardware flow control */
     
     tty.c_cc[VMIN] = 1;     //min carachters to be read
     tty.c_cc[VTIME] = 0;    //Time to wait for data (tenths of seconds)
     
     //Set the new options for the port...
-    tcflush(fd, TCIFLUSH);
     
     if(tcsetattr(fd, TCSANOW, &tty) != 0) {
         printf("tcgetattr %s\n", sys_errlist[errno]);
@@ -145,13 +144,14 @@ void Roomba::setEvent(char *events[], int total_events, void (*f)(char *, int)) 
 
     }
 
+    sendCommand("START");
+    sendCommand("FULL");
     sendCommand(this->cmds["STREAM"]);
     sendCommand(packet);
     for (int i = 0; i < packet; i++) {
         sendCommand(packetIds[i]);
     }
     
-    printf("Starting Thread\n");
     this->threadRunning = true;
     this->th = thread(setEventListener, this);
     this->th.detach();
@@ -180,7 +180,7 @@ void Roomba::setEvents(int events, void (*f)(char *, int)) {
 void Roomba::songPlayingEvent(void (*f)(char *, int)) {
 
     char *events[MAX_EVENTS];
-    events[0] = (char *) "SONG_PLAYONG";
+    events[0] = (char *) "SONG_PLAYING";
     this->setEvent(events, 1,  f);
 
 }
@@ -225,7 +225,7 @@ void Roomba::drive(int velocity, int angle) {
     int speed2 = velocity & 0x00ff;
     int angle1 = angle & 0xff00;
     int angle2 = angle & 0x00ff;
-    sendCommand(this->cmds["DRIVE"]);
+    sendCommand("DRIVE");
     sendCommand(speed1);
     sendCommand(speed2);
     sendCommand(angle1);
@@ -261,9 +261,6 @@ void Roomba::sendCommand(string cmd, int value) {
     sendCommand(this->cmds[cmd]);
     sendCommand(value);
 }
-void Roomba::sleepMilliSecond(int ms) {
-    usleep(ms * 1000);
-}
 void Roomba::sendCommand(int value) {
     size_t n  = write(this->fd, &value , 1);
     if(n < 1) {
@@ -272,6 +269,9 @@ void Roomba::sendCommand(int value) {
     sleepMilliSecond(100);
     printf("-[%d]-\n", value);
    
+}
+void Roomba::sleepMilliSecond(int ms) {
+    usleep(ms * 1000);
 }
 bool Roomba::robotReady() {
     if (!this->getStatus()) {
@@ -284,9 +284,6 @@ void Roomba::createSong(int songNumber,  int midiLength, array<int, 32> midiSequ
     
     if (!robotReady()) return;
     
-    sendCommand("START");
-    sendCommand("FULL");
-    sleepMilliSecond(100);
     sendCommand("SONG");
     sendCommand(songNumber);
     sendCommand(midiLength);
@@ -313,53 +310,69 @@ void Roomba::setEventListener(Roomba *r) {
     FD_ZERO (&fdset);
     FD_SET (r->fd, &fdset);
     int ret;
-    if ((ret = select (r->fd + 1, &fdset, 0,  0,  0)) < 0) {
-        perror ("select");
-        return;
-    }
-    read_set = fdset;
-    size_t n;
-    int c;
-    char buffer[BUFFER_LIMIT];
-    int index  = 0;
     
-    if (FD_ISSET(r->fd, &fdset)) {
-        while((n = read(r->fd, &c, 1)) > 0) {
-            if(r->finishThread) {
-                printf("Asked to exit now ...\n");
-                r->finishThread = false;
-                r->th.~thread();
-                return;
-            }
-            buffer[index] = c;
-            if(n == -1) {
-                continue;
-            }
-            if (buffer[index] == STREAM_HEADER && index > 0 && n > 0) {
-                r->streamPacket(buffer, index);
-                index = 0;
-            }
-            else
-                index++;
-            if(index >= BUFFER_LIMIT) index = 0;
-            
+    struct timeval tm;
+    tm.tv_sec = 1;
+    tm.tv_usec = 0;
+    
+    while (true) {
+        if(r->debug) printf("waitOnEvent() ...... \n");
+        if ((ret = select (r->fd + 1, &fdset, 0,  0,  &tm)) < 0) {
+            perror ("select");
+            return;
+        }
+        if(ret == 0) { 
+          if(r->debug) printf("Select timeout ...\n");
+          continue;
         }
         
-    }
+        if(r->debug) printf("event() ......\n");
+        read_set = fdset;
+        size_t n;
+        int c;
+        int buffer[BUFFER_LIMIT];
+        int index  = 0;
+        
+        if (FD_ISSET(r->fd, &fdset)) {
+            while((n = read(r->fd, &c, 1)) > 0) {
+                if(r->finishThread) {
+                    printf("Asked to exit now ...\n");
+                    r->finishThread = false;
+                    r->th.~thread();
+                    return;
+                }
+                if(n == -1) {
+                    r->streamPacket(buffer, index);
+                    break;
+                }
+                buffer[index] = c;
+                if (buffer[index] == STREAM_HEADER && index > 0 && n > 0) {
+                    r->streamPacket(buffer, index);
+                    index = 0;
+                }
+                else
+                    index++;
+                if(index >= BUFFER_LIMIT) index = 0;
+                
+            }
+            
+        }
 
+    }
+    
     return;
 }
 
-void Roomba::print(char *buffer, int index) {
+void Roomba::print(int buffer[], int index, int checksum) {
     printf("[ ");
     for (int i = 0; i <= index; i++) {
         printf("%d,", buffer[i]);
     }
     
-    printf(" ]\n");
+    printf("checksum:%d]\n", checksum);
 
 }
-void Roomba::streamPacket(char *buffer, int index) {
+void Roomba::streamPacket(int buffer[], int index) {
     int i = 0;
 
     int checksum = 0;
@@ -367,18 +380,19 @@ void Roomba::streamPacket(char *buffer, int index) {
     for (int i = 0; i < index; i++) checksum += buffer[i];
    
     
-    //print(buffer, index-1);
-  
-    if (checksum != -1 * STREAM_HEADER  && checksum != (255 - STREAM_HEADER)) return;
-    int no_of_packets = buffer[0];
+    //print(buffer, index-1, checksum);
     
-    i = 1;
+    if (checksum != 256) return;
+    int no_of_packets = buffer[1];
+    
+    i = 2;
     
     while (no_of_packets > 0  && true) {
         for (auto v : this->events) {
             if (v.second.event.packetId == buffer[i]) {
                 for (int k = 0; k < v.second.event.packetLength; k++) {
                     if (v.second.event.eventMask & buffer[i + k + 1]) {
+                        printf("event(1)......\n");
                         v.second.f(v.first, buffer[i+k+1]);                    }
                 }
 
@@ -392,19 +406,25 @@ void Roomba::streamPacket(char *buffer, int index) {
     return;
 }
 
+void Roomba::setDebug(bool debug) {
+  this->debug = debug;
+}
+
 Roomba::Roomba(char *d, int baudrate) {
     this->isOpen = false;
-    
+    this->debug = false; 
     this->threadRunning = false;
     this->finishThread = false;
     
     initializeCommands();
     printCommands();
-    this->fd = open(d, O_RDWR | O_NONBLOCK );
+    this->fd = open(d, O_RDWR | O_NOCTTY | O_NONBLOCK);
     if (this->fd < 0) {
         printf("Error opening file ... %s\n", sys_errlist[errno]);
         return;
     }
     this->isOpen =  setBaudRate(fd, B115200);
     printf("Robot initialized ... \n");
+    sendCommand("START");
+    sendCommand("FULL");
 }

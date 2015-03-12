@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/select.h>
+
 #include <thread>
 
 #define MAX_EVENTS 100
@@ -81,6 +82,7 @@ private:
     
     bool threadRunning;
     bool finishThread;
+    bool debug;
     
     unordered_map<char *, EVENTS > events;
     
@@ -92,8 +94,8 @@ private:
     void sendCommand(string cmd, int value);
     static bool setBaudRate(int fd, int speed);
     static void sleepMilliSecond(int ms);
-    void streamPacket(char *buffer, int index);
-    void print(char *buffer, int index);
+    void streamPacket(int buffer[], int index);
+    void print(int buffer[], int index, int checksum);
     static void setEventListener(Roomba *r);
     bool robotReady();
     void destroyThread();
@@ -114,4 +116,5 @@ public:
     void songPlayingEvent(void (*f)(char *, int));
     void virtualWallEvent(void (*f)(char *, int));
     void setEvents(int events, void (*f)(char *, int));
+    void setDebug(bool debug);
 };
