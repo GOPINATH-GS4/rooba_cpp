@@ -100,6 +100,8 @@ private:
     bool robotReady();
     void destroyThread();
     void setEvent(char *events[], int total_events, void (*f)(char *, int));
+    void print(int buffer[], int index, int cmd[], int cmd_index);
+    void resetStreamHead(int buffer[], int *index, int command[], int *cmd_index);
    
 public:
 

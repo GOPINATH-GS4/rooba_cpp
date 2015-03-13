@@ -297,28 +297,61 @@ void Roomba::playSong(int songNumber) {
     sendCommand(songNumber);
 }
 
-void Roomba::resetStreamHead(int *buffer[], int *index, int *command, int *cmd_index) {
+void Roomba::print(int buffer[], int index, int cmd[], int cmd_index) {
+    printf("[ e(%d)", index);
+    for (int i = 0; i < index; i++)
+        printf("%d,", buffer[i]);
+    printf("]\n");
+    printf("[ e(%d)", cmd_index);
+    for (int i = 0; i < cmd_index; i++)
+        printf("%d,", cmd[i]);
+    printf("]\n");
+    
+}
+void Roomba::resetStreamHead(int buffer[], int *index, int command[], int *cmd_index) {
     
     int t_buffer[BUFFER_LIMIT];
-    int startCopy = false;
+    bool startCopy = false;
     int t_index = 0;
+    bool eod = false;
+    int tmp[BUFFER_LIMIT];
+    int tmp_index = 0;
+    
+    memset(tmp, 0x00, sizeof(tmp));
+    
     for (int i = 0; i < *index; i++) {
-	if (*buffer[i] == STREAM_HEAD && !startCopy) {
-	   t_buffer[t_index] = *buffer[i];
-	   startCopy = true;
-           t_index++;
+        if (eod) {
+            tmp[tmp_index] = buffer[i];
+            tmp_index++;
         }
-	else if(*buffer[i] == STREAM_HEAD && startCopy) {
-	   *index = i;
-           memcpy(buffer, &t_buffer, sizeof(t_buffer));
-           memcpy(command, &t_buffer, sizeof(t_buffer));
-	   return;
+        else if (buffer[i] == STREAM_HEADER && !startCopy) {
+            
+            t_buffer[t_index] = buffer[i];
+            startCopy = true;
+            t_index++;
         }
-	else if(startCopy) {
-	   t_buffer[t_index] = *buffer[i];
-           t_index++;	
-	}
+        else if(buffer[i] == STREAM_HEADER && startCopy) {
+            // Finish up the Command structure
+            *cmd_index = t_index;
+            memcpy(command, &t_buffer, sizeof(t_buffer));
+            
+            // Copy the rest of the data to tmp_buffer before finally merging into return for data resume
+            eod = true;
+            tmp[tmp_index] = buffer[i];
+            tmp_index++;
+        }
+        else if(startCopy) {
+            t_buffer[t_index] = buffer[i];
+            t_index++;
+        }
     }
+    *index = tmp_index;
+    *cmd_index = t_index;
+    memcpy(command, &t_buffer, sizeof(t_buffer));
+    memcpy(buffer, &tmp, sizeof(tmp));
+    
+    return;
+    
 }
 void Roomba::setEventListener(Roomba *r) {
 
@@ -333,6 +366,11 @@ void Roomba::setEventListener(Roomba *r) {
     struct timeval tm;
     tm.tv_sec = 10;
     tm.tv_usec = 0;
+
+    int buffer[BUFFER_LIMIT];
+    int cmd[BUFFER_LIMIT];
+    int cmd_index = 0;
+    int index  = 0;
     
     while (true) {
         if(r->debug) printf("waitOnEvent() ...... \n");
@@ -348,10 +386,8 @@ void Roomba::setEventListener(Roomba *r) {
         if(r->debug) printf("event() ......\n");
         read_set = fdset;
         size_t n;
-        char c;
-        int buffer[BUFFER_LIMIT];
-        int index  = 0;
-        
+        unsigned char c;
+       
         if (FD_ISSET(r->fd, &fdset)) {
             while((n = read(r->fd, &c, 1)) > 0) {
                 if(r->finishThread) {
@@ -361,20 +397,23 @@ void Roomba::setEventListener(Roomba *r) {
                     return;
                 }
                 if(n == -1) {
+
                     if(r->debug) printf("streamPacket(1) ...... \n");
-		    if(buffer[0] != STREAM_HEADER && index <= 0) {
-                    	if(r->debug) printf("resetBuffer(1) ...... \n");
-			index = 0;
-			memset(&buffer, 0x00, sizeof(buffer));
-			continue;
-		    }
-                    r->streamPacket(buffer, index);
+                    
+                    r->resetStreamHead(buffer, &index, cmd, &cmd_index);
+                    if(r->debug) r->print(buffer, index, cmd, cmd_index);
+                    r->streamPacket(cmd, cmd_index);
+                    
                     break;
                 }
                 buffer[index] = c;
                 if (buffer[index] == STREAM_HEADER && index > 0 && n > 0) {
+                    
                     if(r->debug) printf("streamPacket(2) ...... \n");
-                    r->streamPacket(buffer, index);
+                    r->resetStreamHead(buffer, &index, cmd, &cmd_index);
+                    if(r->debug) r->print(buffer, index, cmd, cmd_index);
+                    r->streamPacket(cmd, cmd_index);
+                    
                     index = 0;
                 }
                 else
@@ -419,7 +458,7 @@ void Roomba::streamPacket(int buffer[], int index) {
             if (v.second.event.packetId == buffer[i]) {
                 for (int k = 0; k < v.second.event.packetLength; k++) {
                     if (v.second.event.eventMask & buffer[i + k + 1]) {
-                        printf("event(1)......\n");
+                        if(this->debug) printf("event(1)......\n");
                         v.second.f(v.first, buffer[i+k+1]);                    }
                 }
 
@@ -445,10 +484,6 @@ Roomba::Roomba(char *d, int baudrate) {
     
     initializeCommands();
     printCommands();
-    this->fd = open(d, O_RDWR);
-    sleepMilliSecond(100);
-    close(this->fd);
-    sleep(2);
     this->fd = open(d, O_RDWR | O_NOCTTY | O_NONBLOCK);
     if (this->fd < 0) {
         printf("Error opening file ... %s\n", sys_errlist[errno]);
