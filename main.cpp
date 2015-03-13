@@ -34,8 +34,9 @@ void eventf(char *event, int value) {
 
 int main(int argc, const char * argv[]) {
     
-    Roomba *r = new Roomba((char *) "/dev/tty.usbserial-DA017QCF", B115200);
+    Roomba *r = new Roomba((char *) "/dev/ttyUSB0", B115200);
     
+    r->setDebug(true);
     r->printCommands();
     
     if (r->getStatus())
