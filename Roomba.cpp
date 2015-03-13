@@ -28,6 +28,12 @@ bool Roomba::setBaudRate(int fd, int speed) {
      Stop bits: 1
      Flow control: None
     */
+
+
+    tty.c_lflag &= ~(ICANON | ECHO | ECHOE | ECHOK | ECHONL | ISIG | IEXTEN);
+    tty.c_oflag &= ~(OPOST);
+    tty.c_iflag &= ~(INLCR | IGNCR | ICRNL | IGNBRK);
+
     tty.c_cflag |= (CLOCAL | CREAD | CS8);
     tty.c_cflag &= ~(PARENB | CSTOPB);
     tty.c_cflag &= ~CRTSCTS; 
@@ -448,7 +454,7 @@ void Roomba::streamPacket(int buffer[], int index) {
     
     if(this->debug) print(buffer, index, checksum);
     
-    if (checksum != 256) return;
+    if (checksum != 256 && checksum != 128) return;
     int no_of_packets = buffer[1];
     
     i = 2;
