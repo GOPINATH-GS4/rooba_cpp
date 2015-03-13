@@ -94,7 +94,26 @@ void Roomba::initializeCommands() {
     this->eventInfo[3].packetId = 13;
     this->eventInfo[3].packetLength = 1;
     this->eventInfo[3].eventMask = 0xff;
+    
+    this->eventInfo[4].event = (char *)"CLIFF_LEFT";
+    this->eventInfo[4].packetId = 9;
+    this->eventInfo[4].packetLength = 1;
+    this->eventInfo[4].eventMask = 0xff;
 
+    this->eventInfo[5].event = (char *)"CLIFF_RIGHT";
+    this->eventInfo[5].packetId = 12;
+    this->eventInfo[5].packetLength = 1;
+    this->eventInfo[5].eventMask = 0xff;
+    
+    this->eventInfo[6].event = (char *)"CLIFF_FRONT_LEFT";
+    this->eventInfo[6].packetId = 10;
+    this->eventInfo[6].packetLength = 1;
+    this->eventInfo[6].eventMask = 0xff;
+    
+    this->eventInfo[7].event = (char *)"CLIFF_FRONT_RIGHT";
+    this->eventInfo[7].packetId = 11;
+    this->eventInfo[7].packetLength = 1;
+    this->eventInfo[7].eventMask = 0xff;
     
 }
 void Roomba::destroyThread() {
@@ -176,8 +195,31 @@ void Roomba::setEvents(int events, void (*f)(char *, int)) {
         ev[i] = (char *) "VIRTUAL_WALL";
         i++;
     }
+    if ((events & CLIFF_LEFT_EVENT) == CLIFF_LEFT_EVENT) {
+        ev[i] = (char *) "CLIFF_LEFT";
+        i++;
+    }
+    if ((events & CLIFF_FRONT_LEFT_EVENT) == CLIFF_FRONT_LEFT_EVENT) {
+        ev[i] = (char *) "CLIFF_FRONT_LEFT";
+        i++;
+    }
+    if ((events & CLIFF_RIGHT_EVENT) == CLIFF_RIGHT_EVENT) {
+        ev[i] = (char *) "CLIFF_RIGHT";
+        i++;
+    }
+    if ((events & CLIFF_FRONT_RIGHT_EVENT) == CLIFF_FRONT_RIGHT_EVENT) {
+        ev[i] = (char *) "CLIFF_FRONT_RIGHT";
+        i++;
+    }
     setEvent(ev, i, f);
     
+}
+
+void Roomba::cliffEvent(void (*f)(char *, int)) {
+    
+    int event = CLIFF_LEFT_EVENT | CLIFF_FRONT_LEFT_EVENT | CLIFF_RIGHT_EVENT | CLIFF_FRONT_RIGHT_EVENT;
+    
+    this->setEvents(event, f);
 }
 void Roomba::songPlayingEvent(void (*f)(char *, int)) {
 

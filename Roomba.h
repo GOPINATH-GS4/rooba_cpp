@@ -37,21 +37,28 @@ using namespace std;
 #define STREAM_HEADER 19 
 #define BUFFER_LIMIT 1024
 
-#define BUMP_EVENT             0x01
-#define VIRTUAL_WALL_EVENT     0x02
-#define SONG_PLAYING_EVENT     0x04
+#define BUMP_EVENT                   0x01
+#define VIRTUAL_WALL_EVENT           0x02
+#define SONG_PLAYING_EVENT           0x04
+#define CLIFF_LEFT_EVENT             0x08
+#define CLIFF_RIGHT_EVENT            0x10
+#define CLIFF_FRONT_LEFT_EVENT       0x20
+#define CLIFF_FRONT_RIGHT_EVENT      0x40
 
+#define BUMP_RIGHT(value)                 ((value & 0x01) == 0x01)
+#define BUMP_LEFT(value)                  ((value & 0x02) == 0x02)
+#define WHEEL_DROP_RIGHT(value)           ((value & 0x04) == 0x04)
+#define WHEEL_DROP_LEFT(value)            ((value & 0x08) == 0x08)
+#define WHEEL_DROP_CASTER(value)          ((value & 0x10) == 0x10)
 
-#define BUMP_RIGHT(value)               ((value & 0x01) == 0x01)
-#define BUMP_LEFT(value)                ((value & 0x02) == 0x02)
-#define WHEEL_DROP_RIGHT(value)         ((value & 0x04) == 0x04)
-#define WHEEL_DROP_LEFT(value)          ((value & 0x08) == 0x08)
-#define WHEEL_DROP_CASTER(value)        ((value & 0x10) == 0x10)
+#define SONG_PLAYING(value)               ((value & 0x01) == 0x01)
 
-#define SONG_PLAYING(value)             ((value & 0x01) == 0x01) 
+#define VIRTUAL_WALL_DETECTED(value)      ((value & 0x01) == 0x01)
 
-#define VIRTUAL_WALL_DETECTED(value)    ((value & 0x01) == 0x01)
-
+#define CLIFF_LEFT_DETECTED(value)        ((value & 0x01) == 0x01)
+#define CLIFF_RIGHT_DETECTED(value)       ((value & 0x01) == 0x01)
+#define CLIFF_FRONT_LEFT_DETECTED(value)  ((value & 0x01) == 0x01) 
+#define CLIFF_FRONT_RIGHT_DETECTED(value) ((value & 0x01) == 0x01)
 
 typedef  struct EVENTS_INFO {
     char *event;
@@ -117,6 +124,7 @@ public:
     void bumpEvent(void (*f)(char *, int));
     void songPlayingEvent(void (*f)(char *, int));
     void virtualWallEvent(void (*f)(char *, int));
+    void cliffEvent(void (*f)(char *, int));
     void setEvents(int events, void (*f)(char *, int));
     void setDebug(bool debug);
 };

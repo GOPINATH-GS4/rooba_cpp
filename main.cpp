@@ -27,6 +27,13 @@ void eventf(char *event, int value) {
     if (strcmp(event, "VIRTUAL_WALL") == 0) {
         if (VIRTUAL_WALL_DETECTED(value)) printf("Virtual wall detected\n");
     }
+    if (strncmp(event, "CLIFF", 5) == 0) {
+        
+        if(CLIFF_LEFT_DETECTED(value)) printf("Cliff left detected\n");
+        if(CLIFF_FRONT_LEFT_DETECTED(value)) printf("Cliff front left detected\n");
+        if(CLIFF_RIGHT_DETECTED(value)) printf("Cliff right detected\n");
+        if(CLIFF_FRONT_RIGHT_DETECTED(value)) printf("Cliff front right detected\n");
+    }
 
 }
 
@@ -35,8 +42,8 @@ void eventf(char *event, int value) {
 int main(int argc, const char * argv[]) {
     
     
-    //Roomba *r = new Roomba((char *) "/dev/tty.usbserial-DA017QCF", B115200);
-    Roomba *r = new Roomba((char *) "/dev/ttyUSB0", B115200);
+    Roomba *r = new Roomba((char *) "/dev/tty.usbserial-DA017QCF", B115200);
+    //Roomba *r = new Roomba((char *) "/dev/ttyUSB0", B115200);
     
     //r->setDebug(true);
     r->printCommands();
