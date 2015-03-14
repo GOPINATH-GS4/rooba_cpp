@@ -467,7 +467,6 @@ void Roomba::setEventListener(Roomba *r) {
                 else
                     index++;
                 if(index >= BUFFER_LIMIT) index = 0;
-                
             }
             
         }
@@ -508,6 +507,8 @@ void Roomba::streamPacket(int buffer[], int index) {
                     if (v.second.event.eventMask & buffer[i + k + 1]) {
                         if(this->debug) printf("event(1)......\n");
                         v.second.f(v.first, buffer[i+k+1]);                    }
+			if(this->debug) printf("f(%s,%d) ...... \n", v.first, buffer[i+k+1]); 
+			usleep(10);
                 }
 
                 i += v.second.event.packetLength + 1;

@@ -25,10 +25,11 @@ void eventf(char *event, int value) {
         if (SONG_PLAYING(value)) printf("Song playing\n");
     }
     if (strcmp(event, "VIRTUAL_WALL") == 0) {
+        printf("Event : %s\n", event);
         if (VIRTUAL_WALL_DETECTED(value)) printf("Virtual wall detected\n");
     }
     if (strncmp(event, "CLIFF", 5) == 0) {
-        
+    	printf("Event : %s\n", event);    
         if(CLIFF_LEFT_DETECTED(value)) printf("Cliff left detected\n");
         if(CLIFF_FRONT_LEFT_DETECTED(value)) printf("Cliff front left detected\n");
         if(CLIFF_RIGHT_DETECTED(value)) printf("Cliff right detected\n");
@@ -42,8 +43,8 @@ void eventf(char *event, int value) {
 int main(int argc, const char * argv[]) {
     
     
-    Roomba *r = new Roomba((char *) "/dev/tty.usbserial-DA017QCF", B115200);
-    //Roomba *r = new Roomba((char *) "/dev/ttyUSB0", B115200);
+    //Roomba *r = new Roomba((char *) "/dev/tty.usbserial-DA017QCF", B115200);
+    Roomba *r = new Roomba((char *) "/dev/ttyUSB0", B115200);
     
     //r->setDebug(true);
     r->printCommands();
@@ -70,7 +71,7 @@ int main(int argc, const char * argv[]) {
     r->createSong(0, 12, songSequence);
     r->playSong(0);
     
-    //r->spin(1); // -1 for clockwise spin
+    r->spin(1); // -1 for clockwise spin
     //r->drive(500, 0); // Velocity and angle
     //r->driveDirect(100, -100);
     
