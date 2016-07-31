@@ -29,8 +29,8 @@ Make sure you change the **"/dev/tty.usbserial-DA017QCF"** to the device attache
 ````
 
 	** Compile **
-	Roomba master % g++ -c Roomba.cpp 
-	Roomba master % g++ -o ./test main.cpp Roomba.o 
+	Roomba master % g++ -std=c++0x -c Roomba.cpp 
+	Roomba master % g++ -std=c++0x -o ./test main.cpp Roomba.o -lpthread
 	
 	** Run **
 	./test 
