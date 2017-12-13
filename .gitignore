@@ -5,4 +5,6 @@ a.out
 a.log
 main
 cmake-build-debug
+.idea/
+.idea/*
 

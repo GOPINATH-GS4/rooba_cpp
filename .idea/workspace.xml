@@ -11,12 +11,7 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b3b9a00d-a798-4e29-a2f2-fa561c24bfe5" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Roomba.cpp" afterPath="$PROJECT_DIR$/Roomba.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Roomba.h" afterPath="$PROJECT_DIR$/Roomba.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/main.cpp" afterPath="$PROJECT_DIR$/main.cpp" />
-    </list>
+    <list default="true" id="b3b9a00d-a798-4e29-a2f2-fa561c24bfe5" name="Default" comment="" />
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -255,12 +250,12 @@
       <option name="presentableId" value="Default" />
       <updated>1513202863222</updated>
       <workItem from="1513202864610" duration="132000" />
-      <workItem from="1513203017417" duration="476000" />
+      <workItem from="1513203017417" duration="573000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="608000" />
+    <option name="totallyTimeSpent" value="705000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1680" height="971" extended-state="0" />
