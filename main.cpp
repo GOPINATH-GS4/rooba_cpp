@@ -11,7 +11,7 @@
 
 void eventf(char *event, int value) {
     
-  
+
     if(strcmp(event, "BUMP") == 0 ) {
         //printf("Event : %s\n", event);
         if (BUMP_RIGHT(value)) printf("Bump Right\n");
@@ -41,8 +41,8 @@ void eventf(char *event, int value) {
 
 
 int main(int argc, const char * argv[]) {
-    
-    
+
+
     Roomba *r = new Roomba((char *) "/dev/tty.usbserial-DA017QCF", B115200);
    // Roomba *r = new Roomba((char *) "/dev/ttyUSB0", B115200);
     
@@ -68,19 +68,21 @@ int main(int argc, const char * argv[]) {
    
     // 12 Midi sequences from the array  
     
-    r->createSong(0, 12, songSequence);
-    r->playSong(0);
-    
+    //r->createSong(0, 12, songSequence);
+    //r->playSong(0);
 
+    r->spin(Roomba::CLOCKWISE, -100);
+    /*
     for (int speed = 0; speed < 256; speed += 5) {
         r->spin(Roomba::CLOCKWISE, speed);
         sleep(3);
     }
+     */
     //r->drive(500, 0); // Velocity and angle
     //r->driveDirect(100, -100);
     
     //r->bumpEvent(eventf);
-    sleep(10);
+    sleep(5);
 
     r->stop(); // Finally stop the robot
     
