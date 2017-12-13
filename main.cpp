@@ -71,7 +71,11 @@ int main(int argc, const char * argv[]) {
     r->createSong(0, 12, songSequence);
     r->playSong(0);
     
-    //r->spin(1); // -1 for clockwise spin
+
+    for (int speed = 0; speed < 256; speed += 5) {
+        r->spin(Roomba::CLOCKWISE, speed);
+        sleep(3);
+    }
     //r->drive(500, 0); // Velocity and angle
     //r->driveDirect(100, -100);
     

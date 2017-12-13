@@ -248,11 +248,11 @@ void Roomba::stop() {
     destroyThread();
     
 }
-void Roomba::spin(int direction) {
+void Roomba::spin(enum DIRECTION direction) {
     sendCommand("DRIVE");
     sendCommand(255);
     sendCommand(56);
-    if (direction > 0) {
+    if (direction == CLOCKWISE) {
         sendCommand(0xff);
         sendCommand(0xff);
     } else {
@@ -260,6 +260,21 @@ void Roomba::spin(int direction) {
         sendCommand(0x01);
     }
     
+}
+void Roomba::spin(enum DIRECTION direction, int speed) {
+
+    if (speed < 0 || speed > 255) return;
+    sendCommand("DRIVE");
+    sendCommand(speed);
+    sendCommand(56);
+    if (direction == CLOCKWISE) {
+        sendCommand(0xff);
+        sendCommand(0xff);
+    } else {
+        sendCommand(0x00);
+        sendCommand(0x01);
+    }
+
 }
 void Roomba::drive(int velocity, int angle) {
     

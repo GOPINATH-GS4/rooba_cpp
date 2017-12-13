@@ -78,9 +78,13 @@ typedef struct PACKET {
 } PACKET;
 
 class Roomba {
-    
+
+
+public:
+    enum DIRECTION {CLOCKWISE, COUNTER_CLOCKWISE};
    
 private:
+
     unordered_map <string, int> cmds;
     int fd;
     bool isOpen;
@@ -117,7 +121,8 @@ public:
     void playSong(int songNumber);
     bool getStatus();
     void printCommands();
-    void spin(int direction);
+    void spin(enum DIRECTION direction);
+    void spin(enum DIRECTION direction, int speed);
     void stop();
     void drive(int velocity, int angle);
     void driveDirect(int rightWheelSpeed, int leftWheelSpeed);

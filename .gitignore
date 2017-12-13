@@ -4,3 +4,5 @@ main
 a.out 
 a.log
 main
+cmake-build-debug
+
