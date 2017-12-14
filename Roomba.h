@@ -34,7 +34,12 @@
 #endif /* defined(__Roomba__Roomba__) */
 using namespace std;
 
-#define STREAM_HEADER 19 
+#define STREAM_HEADER 19
+#define ANGLE_HEADER 'A'
+#define CALLIBRATION_HEADER 'C'
+#define SPEED_HEADER 'S'
+#define DONE_HEADER 'D'
+
 #define BUFFER_LIMIT 1024
 
 #define BUMP_EVENT                   0x01
@@ -103,11 +108,13 @@ private:
     void sendCommand(string cmd);
     void sendCommand(int cmd);
     void sendCommand(string cmd, int value);
-    static bool setBaudRate(int fd, int speed);
+    static bool setBaudRate(int fd, int speed, bool noCommand = false);
+
     static void sleepMilliSecond(int ms);
     void streamPacket(int buffer[], int index);
     void print(int buffer[], int index, int checksum);
     static void setEventListener(Roomba *r);
+    static void GeneralEventListener(Roomba *r, void (*f)(int , int));
     bool robotReady();
     void destroyThread();
     void setEvent(char *events[], int total_events, void (*f)(char *, int));
@@ -116,7 +123,9 @@ private:
    
 public:
 
-    Roomba(char *device, int baudRate);
+    Roomba(char *device, int baudRate, bool noCommand=false);
+
+    void setGeneralEvent(void (*f)(int, int));
     void createSong(int songNumber, int midiLengh, array<int,32> midiSequence);
     void playSong(int songNumber);
     bool getStatus();

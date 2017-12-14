@@ -9,6 +9,26 @@
 
 #include "Roomba.h"
 
+Roomba *r1;
+
+void generalEvent(int event, int value) {
+
+    switch(event) {
+        case CALLIBRATION_HEADER:
+            return;
+        case ANGLE_HEADER:
+            return;
+        case SPEED_HEADER:
+            r1->spin(Roomba::CLOCKWISE, value);
+            return;
+        case DONE_HEADER:
+            r1->stop();
+            return;
+
+    }
+    cout << (char) event << ":" << value << endl;
+
+}
 void eventf(char *event, int value) {
     
 
@@ -43,20 +63,23 @@ void eventf(char *event, int value) {
 int main(int argc, const char * argv[]) {
 
 
-    Roomba *r = new Roomba((char *) "/dev/tty.usbserial-DA017QCF", B115200);
-   // Roomba *r = new Roomba((char *) "/dev/ttyUSB0", B115200);
+    //Roomba *r = new Roomba((char *) "/dev/tty.usbserial-DA017QCF", B115200);
+    Roomba *r2 = new Roomba((char *) "/dev/cu.usbmodem1411", B9600, true);
+    r1 = new Roomba((char *) "/dev/ttyUSB0", B115200);
+
+
+    //r2->setDebug(true);
+    //r1->printCommands();
+    //r2->setGeneralEvent(generalEvent);
     
-    //r->setDebug(true);
-    r->printCommands();
-    
-    if (r->getStatus())
+    if (r1->getStatus())
         cout << "Robot initialized successfully" << endl;
     else
         cout << "Failed to initialize robot" << endl;
     
-    int events = BUMP_EVENT | SONG_PLAYING_EVENT | VIRTUAL_WALL_EVENT;
+    //int events = BUMP_EVENT | SONG_PLAYING_EVENT | VIRTUAL_WALL_EVENT;
     
-    r->setEvents(events, eventf);
+    //r1->setEvents(events, eventf);
     //r->bumpEvent(eventf);
 
     //r->songPlayingEvent(eventf);
@@ -64,14 +87,14 @@ int main(int argc, const char * argv[]) {
     //r->virtualWallEvent(eventf);
     
     // GGGAGG GAABGA
-    array<int, 32> songSequence = { 91,32,91,32,91,32,93,32,91,32,91,42,91,32,93,32,93,32,95,32,91,32,93,32 };
+    //array<int, 32> songSequence = { 91,32,91,32,91,32,93,32,91,32,91,42,91,32,93,32,93,32,95,32,91,32,93,32 };
    
     // 12 Midi sequences from the array  
     
     //r->createSong(0, 12, songSequence);
     //r->playSong(0);
 
-    r->spin(Roomba::CLOCKWISE, -100);
+    //r1->spin(Roomba::CLOCKWISE, -100);
     /*
     for (int speed = 0; speed < 256; speed += 5) {
         r->spin(Roomba::CLOCKWISE, speed);
@@ -84,7 +107,9 @@ int main(int argc, const char * argv[]) {
     //r->bumpEvent(eventf);
     sleep(5);
 
-    r->stop(); // Finally stop the robot
-    
-    return 0;
+
+    while(1) {
+        usleep(500);
+    }
+    r1->stop(); // Finally stop the robot
 }

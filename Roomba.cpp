@@ -8,7 +8,7 @@
 
 #include "Roomba.h"
 
-bool Roomba::setBaudRate(int fd, int speed) {
+bool Roomba::setBaudRate(int fd, int speed, bool noCommand) {
     struct termios tty;
     
     memset (&tty, 0, sizeof tty);
@@ -29,23 +29,34 @@ bool Roomba::setBaudRate(int fd, int speed) {
      Flow control: None
      */
     
-    
-    tty.c_lflag &= ~(ICANON | ECHO | ECHOE | ECHOK | ECHONL | ISIG | IEXTEN);
-    tty.c_oflag &= ~(OPOST);
-    tty.c_iflag &= ~(INLCR | IGNCR | ICRNL | IGNBRK);
-    
-    tty.c_cflag |= (CLOCAL | CREAD | CS8);
-    tty.c_cflag &= ~(PARENB | CSTOPB);
-    tty.c_cflag &= ~CRTSCTS;
-    tty.c_iflag &= ~(IXON | IXOFF | IXANY);           // disable XON XOFF (for transmit and receive)
-    tty.c_cflag &= ~CSIZE;
-    /* tty.c_cflag &= ~CSIZE;         Mask the character size bits
-     tty.c_cflag &= ~CRTSCTS;     disable hardware flow control
-     tty.c_iflag &= ~(IXON | IXOFF | IXANY);           // disable XON XOFF (for transmit and receive)
-     //tty.c_cflag |= CRTSCTS;       enable hardware flow control */
-    
-    tty.c_cc[VMIN] = 1;     //min carachters to be read
-    tty.c_cc[VTIME] = 0;    //Time to wait for data (tenths of seconds)
+    if (noCommand) {
+        tty.c_cflag |= (CLOCAL | CREAD);
+        //8 bit characters
+        tty.c_cflag &= ~CSIZE; /* Mask the character size bits */
+        tty.c_cflag |= CS8;    /* Select 8 data bits */
+        //No parity
+        tty.c_cflag &= ~PARENB;
+        tty.c_cflag &= ~CSTOPB;
+
+    } else {
+        tty.c_lflag &= ~(ICANON | ECHO | ECHOE | ECHOK | ECHONL | ISIG | IEXTEN);
+        tty.c_oflag &= ~(OPOST);
+        tty.c_iflag &= ~(INLCR | IGNCR | ICRNL | IGNBRK);
+
+        tty.c_cflag |= (CLOCAL | CREAD | CS8);
+        tty.c_cflag &= ~(PARENB | CSTOPB);
+        tty.c_cflag &= ~CRTSCTS;
+        tty.c_iflag &= ~(IXON | IXOFF | IXANY);           // disable XON XOFF (for transmit and receive)
+        tty.c_cflag &= ~CSIZE;
+        /* tty.c_cflag &= ~CSIZE;         Mask the character size bits
+         tty.c_cflag &= ~CRTSCTS;     disable hardware flow control
+         tty.c_iflag &= ~(IXON | IXOFF | IXANY);           // disable XON XOFF (for transmit and receive)
+         //tty.c_cflag |= CRTSCTS;       enable hardware flow control */
+
+        tty.c_cc[VMIN] = 1;     //min carachters to be read
+        tty.c_cc[VTIME] = 0;    //Time to wait for data (tenths of seconds)
+    }
+
     
     //Set the new options for the port...
     
@@ -56,6 +67,7 @@ bool Roomba::setBaudRate(int fd, int speed) {
     }
     return true;
 }
+
 void Roomba::printCommands() {
     
     for (auto keyValue : this->cmds) {
@@ -178,6 +190,12 @@ void Roomba::setEvent(char *events[], int total_events, void (*f)(char *, int)) 
     this->th.detach();
 }
 
+void Roomba::setGeneralEvent(void (*f)(int, int)) {
+    this->threadRunning = true;
+    this->th = thread(GeneralEventListener, this, f);
+    this->th.detach();
+
+}
 void Roomba::setEvents(int events, void (*f)(char *, int)) {
     
     char *ev[MAX_EVENTS];
@@ -419,6 +437,71 @@ void Roomba::resetStreamHead(int buffer[], int *index, int command[], int *cmd_i
     return;
     
 }
+void Roomba::GeneralEventListener(Roomba *r, void (*f)(int , int)) {
+
+    if (!r->robotReady()) return;
+
+    r->threadRunning = true;
+    fd_set fdset;
+    FD_ZERO (&fdset);
+    FD_SET (r->fd, &fdset);
+    int ret;
+
+    struct timeval tm;
+    tm.tv_sec = 10;
+    tm.tv_usec = 0;
+
+
+    string cmd = "";
+    int headerType = 0;
+    while (true) {
+        if(r->debug) printf("waitOnEvent() ...... \n");
+        if ((ret = select (r->fd + 1, &fdset, 0,  0,  0)) < 0) {
+            perror ("select");
+            return;
+        }
+        if(ret == 0) {
+            if(r->debug) printf("Select timeout ...\n");
+            continue;
+        }
+
+        if(r->debug) printf("event() ......\n");
+        size_t n;
+        unsigned char c;
+
+        if (FD_ISSET(r->fd, &fdset)) {
+            while((n = read(r->fd, &c, 1)) > 0) {
+                if(r->finishThread) {
+                    printf("Asked to exit now ...\n");
+                    r->finishThread = false;
+                    r->th.~thread();
+                    return;
+                }
+                if(n == -1) break;
+
+
+                switch(c) {
+                    case ANGLE_HEADER:
+                    case CALLIBRATION_HEADER:
+                    case SPEED_HEADER:
+                    case DONE_HEADER:
+                        headerType = c;
+                        break;
+                    case '\n':
+                        f(headerType, atoi(cmd.c_str()));
+                        cmd = "";
+                        break;
+                    default:
+                        cmd += c;
+                        break;
+                }
+
+            }
+
+        }
+
+    }
+}
 void Roomba::setEventListener(Roomba *r) {
     
     if (!r->robotReady()) return;
@@ -490,8 +573,6 @@ void Roomba::setEventListener(Roomba *r) {
         }
         
     }
-    
-    return;
 }
 
 void Roomba::print(int buffer[], int index, int checksum) {
@@ -542,12 +623,12 @@ void Roomba::setDebug(bool debug) {
     this->debug = debug;
 }
 
-Roomba::Roomba(char *d, int baudrate) {
+Roomba::Roomba(char *d, int baudrate, bool noCommand) {
     this->isOpen = false;
     this->debug = false;
     this->threadRunning = false;
     this->finishThread = false;
-    
+
     initializeCommands();
     printCommands();
     this->fd = open(d, O_RDWR | O_NOCTTY | O_NONBLOCK);
@@ -555,8 +636,16 @@ Roomba::Roomba(char *d, int baudrate) {
         printf("Error opening file ... %s\n", sys_errlist[errno]);
         return;
     }
-    this->isOpen =  setBaudRate(fd, B115200);
+
     printf("Robot initialized ... \n");
-    sendCommand("START");
-    sendCommand("FULL");
+    if (!noCommand) {
+        this->isOpen = setBaudRate(fd, baudrate);
+        sendCommand("START");
+        sendCommand("FULL");
+    } else {
+        this->isOpen = setBaudRate(fd, baudrate, true);
+    }
+        sleep(3);
+
 }
+
