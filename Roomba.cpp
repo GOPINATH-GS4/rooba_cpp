@@ -279,7 +279,7 @@ void Roomba::spin(enum DIRECTION direction) {
     }
     
 }
-void Roomba::spin(enum DIRECTION direction, int speed) {
+void Roomba::spin(enum DIRECTION direction, int16_t speed) {
 
     if (speed < -500 || speed > 500) return;
 
@@ -296,15 +296,15 @@ void Roomba::spin(enum DIRECTION direction, int speed) {
     }
 
 }
-void Roomba::drive(int velocity, int angle) {
+void Roomba::drive(int16_t velocity, int16_t angle) {
     
     if (!robotReady()) return;
     if (velocity < -500 && velocity > 500) return;
     if (angle < -2000 && angle > 2000) return;
-    int speed1 = (velocity & 0xff00) >> 8;
-    int speed2 = velocity & 0x00ff;
-    int angle1 = (angle & 0xff00) >> 8;
-    int angle2 = angle & 0x00ff;
+    uint8_t speed1 = (velocity & 0xff00) >> 8;
+    uint8_t speed2 = velocity & 0x00ff;
+    uint8_t angle1 = (angle & 0xff00) >> 8;
+    uint8_t angle2 = angle & 0x00ff;
     sendCommand("DRIVE");
     sendCommand(speed1);
     sendCommand(speed2);
@@ -313,14 +313,14 @@ void Roomba::drive(int velocity, int angle) {
     
     
 }
-void Roomba::driveDirect(int rightWheelSpeed, int leftWheelSpeed) {
+void Roomba::driveDirect(int16_t rightWheelSpeed, int16_t leftWheelSpeed) {
     
     if (!robotReady()) return;
-    
-    int rV1 = (rightWheelSpeed & 0xff00) >> 8;
-    int rV2 = rightWheelSpeed & 0x00ff;
-    int lV1 = (leftWheelSpeed & 0xff00) >> 8;
-    int lV2 = leftWheelSpeed & 0x00ff;
+
+    int8_t rV1 = (rightWheelSpeed & 0xff00) >> 8;
+    int8_t rV2 = rightWheelSpeed & 0x00ff;
+    int8_t lV1 = (leftWheelSpeed & 0xff00) >> 8;
+    int8_t lV2 = leftWheelSpeed & 0x00ff;
     sendCommand(this->cmds["DRIVE_DIRECT"]);
     sendCommand(rV1);
     sendCommand(rV2);

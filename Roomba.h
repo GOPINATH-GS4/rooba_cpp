@@ -131,10 +131,10 @@ public:
     bool getStatus();
     void printCommands();
     void spin(enum DIRECTION direction);
-    void spin(enum DIRECTION direction, int speed);
+    void spin(enum DIRECTION direction, int16_t speed);
     void stop();
-    void drive(int velocity, int angle);
-    void driveDirect(int rightWheelSpeed, int leftWheelSpeed);
+    void drive(int16_t velocity, int16_t angle);
+    void driveDirect(int16_t rightWheelSpeed, int16_t leftWheelSpeed);
     void bumpEvent(void (*f)(char *, int));
     void songPlayingEvent(void (*f)(char *, int));
     void virtualWallEvent(void (*f)(char *, int));
