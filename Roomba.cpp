@@ -83,7 +83,7 @@ void Roomba::initializeCommands() {
     this->cmds["SONG"] = 140;
     this->cmds["PLAY"] = 141;
     this->cmds["DRIVE"] = 137;
-    this->cmds["DRIVE_DIRECT"] = 137;
+    this->cmds["DRIVE_DIRECT"] = 145;
     this->cmds["PASSIVE"] = 128;
     this->cmds["STREAM"] = 148;
     
