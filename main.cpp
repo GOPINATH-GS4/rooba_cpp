@@ -12,7 +12,7 @@
 Roomba *r1;
 
 void generalEvent(int event, int value) {
-
+    cout << (char) event << ":" << value << endl;
     switch(event) {
         case CALLIBRATION_HEADER:
             return;
@@ -26,7 +26,7 @@ void generalEvent(int event, int value) {
             return;
 
     }
-    cout << (char) event << ":" << value << endl;
+
 
 }
 void eventf(char *event, int value) {
@@ -65,12 +65,12 @@ int main(int argc, const char * argv[]) {
 
     //Roomba *r = new Roomba((char *) "/dev/tty.usbserial-DA017QCF", B115200);
     Roomba *r2 = new Roomba((char *) "/dev/cu.usbmodem1411", B9600, true);
-    r1 = new Roomba((char *) "/dev/ttyUSB0", B115200);
+    //r1 = new Roomba((char *) "/dev/ttyUSB0", B115200);
 
 
     //r2->setDebug(true);
     //r1->printCommands();
-    //r2->setGeneralEvent(generalEvent);
+    r2->setGeneralEvent(generalEvent);
     
     if (r1->getStatus())
         cout << "Robot initialized successfully" << endl;
@@ -94,7 +94,7 @@ int main(int argc, const char * argv[]) {
     //r->createSong(0, 12, songSequence);
     //r->playSong(0);
 
-    //r1->spin(Roomba::CLOCKWISE, -100);
+    r1->spin(Roomba::CLOCKWISE, -100);
     /*
     for (int speed = 0; speed < 256; speed += 5) {
         r->spin(Roomba::CLOCKWISE, speed);
