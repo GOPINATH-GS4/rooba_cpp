@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
         std::cerr << "Please enter a port number between 2000 - 65535" << std::endl;
         return 0;
     }
-   // roomba = new Roomba((char *) "/dev/ttyUSB0", B115200);
+    roomba = new Roomba((char *) "/dev/ttyUSB0", B115200);
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (sockfd < 0) {
