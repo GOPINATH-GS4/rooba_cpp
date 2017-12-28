@@ -12,5 +12,8 @@ set(SERVER Server.cpp Roomba.h Roomba.cpp)
 set(CLIENT Client.cpp)
 
 add_executable(roomba_cpp ${SOURCE_FILES})
+TARGET_LINK_LIBRARIES(roomba_cpp pthread)
 add_executable(server ${SERVER})
+TARGET_LINK_LIBRARIES(server pthread)
 add_executable(client ${CLIENT})
+TARGET_LINK_LIBRARIES(client pthread)
