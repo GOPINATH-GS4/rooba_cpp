@@ -5,7 +5,10 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <csignal>
-
+#include <string.h>
+#include <strings.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include "Roomba.h"
 
 Roomba *roomba;

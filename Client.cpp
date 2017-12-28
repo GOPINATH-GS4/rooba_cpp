@@ -5,8 +5,8 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <sys/types.h>
-#include <sys/wait.h>
+#include <string.h>
+#include <strings.h>
 #include <csignal>
 
 int main(int argc, char **argv) {
