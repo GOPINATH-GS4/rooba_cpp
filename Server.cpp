@@ -19,23 +19,35 @@ void setSigChild();
 void eventHandler(char *s) {
     char *ptr;
     std::cout << s << std::endl;
-    int speed = 0;
-    int rot = 0;
+    int speed = -1;
+    int rot = -1;
     ptr = strchr(s, ':');
-
+    char *angle, *velocity;
     if (ptr == nullptr) return;
     *ptr = 0x00;
     ptr++;
-    char *velocity = strchr(ptr, ':');
+    velocity = strchr(ptr, ':');
 
-    if (velocity == nullptr) speed = 100;
+    if (velocity == nullptr) {
+        speed = 100;
+        rot = 0;
+    }
+    else {
+        *velocity = 0x00;
 
-    *velocity = 0x00;
-    velocity++;
+        velocity++;
 
-    char *angle = strchr(velocity, ':');
+         angle = strchr(velocity, ':');
 
-    if (angle == nullptr) rot = 0;
+        if (angle == nullptr) rot = 0;
+        else {
+            *angle = 0x00;
+            angle++;
+        }
+
+    }
+    if (speed == -1) speed = atoi(velocity);
+    if (rot == -1) rot = atoi(angle);
 
 
     switch(s[0]) {
@@ -44,6 +56,9 @@ void eventHandler(char *s) {
             std::cout << "Drive Seconds " << ptr << std::endl;
 
             if (atoi(ptr) <= 0 && atoi(ptr) > 10) return;
+
+
+
             roomba->drive(speed, rot);
             sleep(atoi(ptr));
             roomba->drive(0,0);
