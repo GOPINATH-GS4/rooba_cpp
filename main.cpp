@@ -12,7 +12,7 @@
 Roomba *r1;
 
 void generalEvent(int event, int value) {
-    cout << (char) event << ":" << value << endl;
+    std::cout << (char) event << ":" << value << std::endl;
     switch(event) {
         case CALLIBRATION_HEADER:
             return;
@@ -70,12 +70,12 @@ int main(int argc, const char * argv[]) {
 
     //r2->setDebug(true);
     //r1->printCommands();
-    r2->setGeneralEvent(generalEvent);
+    //r2->setGeneralEvent(generalEvent);
     
     if (r1->getStatus())
-        cout << "Robot initialized successfully" << endl;
+        std::cout << "Robot initialized successfully" << std::endl;
     else
-        cout << "Failed to initialize robot" << endl;
+        std::cout << "Failed to initialize robot" << std::endl;
     
     //int events = BUMP_EVENT | SONG_PLAYING_EVENT | VIRTUAL_WALL_EVENT;
     

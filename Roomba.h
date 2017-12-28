@@ -32,7 +32,6 @@
 #define MAX_EVENTS 100
 #define MAX_PACKETS 100
 #endif /* defined(__Roomba__Roomba__) */
-using namespace std;
 
 #define STREAM_HEADER 19
 #define ANGLE_HEADER 'A'
@@ -90,24 +89,24 @@ public:
    
 private:
 
-    unordered_map <string, int> cmds;
+    std::unordered_map <std::string, int> cmds;
     int fd;
     bool isOpen;
     void (*event)(char *);
-    thread th;
+    std::thread th;
     
     bool threadRunning;
     bool finishThread;
     bool debug;
     
-    unordered_map<char *, EVENTS > events;
+    std::unordered_map<char *, EVENTS > events;
     
     EVENT_INFO eventInfo[MAX_EVENTS];
     
     void initializeCommands();
-    void sendCommand(string cmd);
+    void sendCommand(std::string cmd);
     void sendCommand(int cmd);
-    void sendCommand(string cmd, int value);
+    void sendCommand(std::string cmd, int value);
     static bool setBaudRate(int fd, int speed, bool noCommand = false);
 
     static void sleepMilliSecond(int ms);
@@ -126,7 +125,7 @@ public:
     Roomba(char *device, int baudRate, bool noCommand=false);
 
     void setGeneralEvent(void (*f)(int, int));
-    void createSong(int songNumber, int midiLengh, array<int,32> midiSequence);
+    void createSong(int songNumber, int midiLengh, std::array<int,32> midiSequence);
     void playSong(int songNumber);
     bool getStatus();
     void printCommands();

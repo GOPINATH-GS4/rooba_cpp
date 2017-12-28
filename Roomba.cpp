@@ -186,13 +186,13 @@ void Roomba::setEvent(char *events[], int total_events, void (*f)(char *, int)) 
     }
     
     this->threadRunning = true;
-    this->th = thread(setEventListener, this);
+    this->th = std::thread(setEventListener, this);
     this->th.detach();
 }
 
 void Roomba::setGeneralEvent(void (*f)(int, int)) {
     this->threadRunning = true;
-    this->th = thread(GeneralEventListener, this, f);
+    this->th = std::thread(GeneralEventListener, this, f);
     this->th.detach();
 
 }
@@ -334,10 +334,10 @@ bool Roomba::getStatus() {
     return this->isOpen;
 }
 
-void Roomba::sendCommand(string cmd) {
+void Roomba::sendCommand(std::string cmd) {
     sendCommand(this->cmds[cmd]);
 }
-void Roomba::sendCommand(string cmd, int value) {
+void Roomba::sendCommand(std::string cmd, int value) {
     sendCommand(this->cmds[cmd]);
     sendCommand(value);
 }
@@ -360,7 +360,7 @@ bool Roomba::robotReady() {
     }
     return true;
 }
-void Roomba::createSong(int songNumber,  int midiLength, array<int, 32> midiSequence) {
+void Roomba::createSong(int songNumber,  int midiLength, std::array<int, 32> midiSequence) {
     
     if (!robotReady()) return;
     
@@ -452,7 +452,7 @@ void Roomba::GeneralEventListener(Roomba *r, void (*f)(int , int)) {
     tm.tv_usec = 0;
 
 
-    string cmd = "";
+    std::string cmd = "";
     int headerType = 0;
     while (true) {
         if(r->debug) printf("waitOnEvent() ...... \n");
