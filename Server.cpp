@@ -14,44 +14,37 @@
 Roomba *roomba;
 void processRequest(int sockfd, void (*f)(char *));
 void setSigChild();
-int velocity = 100;
-int angle = 0;
+
 
 void eventHandler(char *s) {
     char *ptr;
     std::cout << s << std::endl;
-
+    int speed = 0;
+    int rot = 0;
     ptr = strchr(s, ':');
 
     if (ptr == nullptr) return;
     *ptr = 0x00;
     ptr++;
+    char *velocity = strchr(ptr, ':');
+
+    if (velocity == nullptr) speed = 100;
+
+    *velocity = 0x00;
+    velocity++;
+
+    char *angle = strchr(velocity, ':');
+
+    if (angle == nullptr) rot = 0;
 
 
     switch(s[0]) {
-        case 'V' :
-            std::cout << "Velocity " << ptr << std::endl;
-
-            if (atoi(ptr) < -200 && atoi(ptr) > 200)
-                velocity = 100;
-            else
-                velocity = atoi(ptr);
-            break;
-
-        case 'A' :
-
-            std::cout << "Angle " << ptr << std::endl;
-            if (atoi(ptr) < -200 && atoi(ptr) > 200)
-                angle = 0;
-            else
-                angle = atoi(ptr);
-            break;
 
         case 'D' :
             std::cout << "Drive Seconds " << ptr << std::endl;
 
             if (atoi(ptr) <= 0 && atoi(ptr) > 10) return;
-            roomba->drive(velocity, angle);
+            roomba->drive(speed, rot);
             sleep(atoi(ptr));
             roomba->drive(0,0);
             break;
@@ -59,7 +52,7 @@ void eventHandler(char *s) {
             std::cout << "Spin Seconds " << ptr << std::endl;
 
             if (atoi(ptr) <= 0 && atoi(ptr) > 10) return;
-            roomba->spin(Roomba::CLOCKWISE, velocity);
+            roomba->spin(Roomba::CLOCKWISE, rot);
             sleep(atoi(ptr));
             roomba->spin(Roomba::CLOCKWISE, 0);
             break;
