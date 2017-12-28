@@ -51,6 +51,14 @@ void eventHandler(char *s) {
             sleep(atoi(ptr));
             roomba->drive(0,0);
             break;
+        case 'S' :
+            std::cout << "Spin Seconds " << ptr << std::endl;
+
+            if (atoi(ptr) <= 0 && atoi(ptr) > 10) return;
+            roomba->spin(Roomba::CLOCKWISE, velocity);
+            sleep(atoi(ptr));
+            roomba->spin(Roomba::CLOCKWISE, 0);
+            break;
     }
 }
 
