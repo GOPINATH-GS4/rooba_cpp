@@ -14,7 +14,7 @@
 Roomba *roomba;
 void processRequest(int sockfd, void (*f)(char *));
 void setSigChild();
-int velocity = 0;
+int velocity = 100;
 int angle = 0;
 
 void eventHandler(char *s) {
