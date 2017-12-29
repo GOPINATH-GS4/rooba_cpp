@@ -58,7 +58,7 @@ void eventHandler(char *s) {
                 if (isDistance)
                     distance = atoi(token.c_str());
                 else
-                    sec = atoi(token.c_str());
+                    sec = atof(token.c_str());
 
                 if (isDistance) {
                     seconds = (useconds_t) (((distance / 10) / abs(velocity)) * pow(10,6));
