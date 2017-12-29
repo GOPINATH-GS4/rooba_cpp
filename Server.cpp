@@ -22,9 +22,10 @@ void eventHandler(char *s) {
     int velocity = -1;
     int angle = -1;
     int distance = -1;
+    int degree = -1;
     useconds_t seconds = -1;
     double sec;
-    bool isDistance;
+    bool isDistance, isDegree;
     std::string command;
     std::string message(s);
     std::string delimiter = ":";
@@ -52,16 +53,21 @@ void eventHandler(char *s) {
                 break;
             case 3:
                 isDistance = token == "D" ? true : false;
+                isDegree = token == "E" ? true : false;
                 std::cout << "isDistance " << isDistance << std::endl;
                 break;
             case 4:
                 if (isDistance)
                     distance = atoi(token.c_str());
+                else if (isDegree)
+                    degree = atoi(token.c_str());
                 else
                     sec = atof(token.c_str());
 
                 if (isDistance) {
                     seconds = (useconds_t) (((distance / 10) / abs(velocity)) * pow(10,6));
+                } else if (isDegree) {
+                    seconds = (useconds_t) (((degree / 360) * 6.25) * pow(10,6));
                 } else {
                     seconds = (useconds_t) (sec * pow(10,6));
                 }
