@@ -21,7 +21,7 @@ void eventHandler(char *s) {
     int velocity = -1;
     int angle = -1;
     int distance = -1;
-    int seconds = -1;
+    useconds_t seconds = -1;
     bool isDistance;
     std::string command;
     std::string message(s);
@@ -59,7 +59,7 @@ void eventHandler(char *s) {
                     seconds = atoi(token.c_str());
 
                 if (isDistance) {
-                    seconds = distance / abs(velocity);
+                    seconds = (useconds_t) ((distance * 10) / abs(velocity) * 1000000);
                 }
                 std::cout << "distance  " << distance << std::endl;
                 std::cout << "seconds  " << seconds << std::endl;
@@ -74,12 +74,12 @@ void eventHandler(char *s) {
 
     if (command.compare("DRIVE") == 0) {
         roomba->drive(velocity, angle);
-        sleep(seconds);
+        usleep(seconds);
         roomba->drive(0,0);
     }
     else if (command.compare("SPIN") == 0) {
         roomba->spin(Roomba::COUNTER_CLOCKWISE, velocity);
-        sleep(seconds);
+        usleep(seconds);
         roomba->spin(Roomba::COUNTER_CLOCKWISE, 0);
     }
 }
