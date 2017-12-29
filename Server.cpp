@@ -60,7 +60,9 @@ void eventHandler(char *s) {
                     seconds = atoi(token.c_str());
 
                 if (isDistance) {
-                    seconds = (useconds_t) ((distance * 10) / abs(velocity) * pow(10,6));
+                    seconds = (useconds_t) (((distance / 10) / abs(velocity)) * pow(10,6));
+                } else {
+                    seconds *= pow(10,6);
                 }
                 std::cout << "distance  " << distance << std::endl;
                 std::cout << "seconds  " << seconds << std::endl;
