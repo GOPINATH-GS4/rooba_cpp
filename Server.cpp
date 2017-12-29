@@ -66,7 +66,7 @@ void eventHandler(char *s) {
                     sec = atof(token.c_str());
 
                 if (isDistance) {
-                    seconds = (useconds_t) (((distance / 10) / abs(velocity)) * pow(10,6));
+                    seconds = (useconds_t) (((distance * 10) / abs(velocity)) * pow(10,6));
                 } else if (isDegree) {
                     seconds = (useconds_t) (((degree / 360) * 6.25) * pow(10,6));
                 } else {
