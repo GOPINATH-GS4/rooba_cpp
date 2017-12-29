@@ -23,6 +23,7 @@ void eventHandler(char *s) {
     int angle = -1;
     int distance = -1;
     useconds_t seconds = -1;
+    double sec;
     bool isDistance;
     std::string command;
     std::string message(s);
@@ -57,15 +58,16 @@ void eventHandler(char *s) {
                 if (isDistance)
                     distance = atoi(token.c_str());
                 else
-                    seconds = atoi(token.c_str());
+                    sec = atoi(token.c_str());
 
                 if (isDistance) {
                     seconds = (useconds_t) (((distance / 10) / abs(velocity)) * pow(10,6));
                 } else {
-                    seconds *= pow(10,6);
+                    seconds = (useconds_t) (sec * pow(10,6));
                 }
                 std::cout << "distance  " << distance << std::endl;
                 std::cout << "seconds  " << seconds << std::endl;
+                std::cout << "sec  " << sec << std::endl;
                 break;
             default:
                 break;
