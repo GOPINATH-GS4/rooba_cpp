@@ -17,60 +17,70 @@ void setSigChild();
 
 
 void eventHandler(char *s) {
-    char *ptr;
-    std::cout << s << std::endl;
-    int speed = -1;
-    int rot = -1;
-    ptr = strchr(s, ':');
-    char *angle, *velocity;
-    if (ptr == nullptr) return;
-    *ptr = 0x00;
-    ptr++;
-    velocity = strchr(ptr, ':');
 
-    if (velocity == nullptr) {
-        speed = 100;
-        rot = 0;
-    }
-    else {
-        *velocity = 0x00;
+    int velocity = -1;
+    int angle = -1;
+    int distance = -1;
+    int seconds = -1;
+    bool isDistance;
+    std::string command;
+    std::string message(s);
+    std::string delimiter = ":";
 
-        velocity++;
+    size_t pos = 0;
+    std::string token;
+    int i = 0;
+    while ((pos = message.find(delimiter)) != std::string::npos) {
+        token = message.substr(0, pos);
+        switch(i) {
+            case 0:
+                command = token;
+                break;
+            case 1:
+                velocity = atoi(token.c_str());
+                if (velocity < -500 || velocity > 500)
+                    velocity = 0;
+                std::cout << "Velocity " << velocity << std::endl;
+                break;
+            case 2:
+                angle =  atoi(token.c_str());
+                if (angle < -2000 || angle > 2000)
+                    angle = 0;
+                std::cout << "Angle " << angle << std::endl;
+                break;
+            case 3:
+                isDistance = token == "D" ? true : false;
+                std::cout << "isDistance " << isDistance << std::endl;
+                break;
+            case 4:
+                if (isDistance)
+                    distance = atoi(token.c_str());
+                else
+                    seconds = atoi(token.c_str());
 
-         angle = strchr(velocity, ':');
-
-        if (angle == nullptr) rot = 0;
-        else {
-            *angle = 0x00;
-            angle++;
+                if (isDistance) {
+                    seconds = distance / abs(velocity);
+                }
+                std::cout << "distance  " << distance << std::endl;
+                std::cout << "seconds  " << seconds << std::endl;
+                break;
+            default:
+                break;
         }
-
+        i++;
+        std::cout << token << std::endl;
+        message.erase(0, pos + delimiter.length());
     }
-    if (speed == -1) speed = atoi(velocity);
-    if (rot == -1) rot = atoi(angle);
 
-
-    switch(s[0]) {
-
-        case 'D' :
-            std::cout << "Drive Seconds " << ptr << std::endl;
-
-            if (atoi(ptr) <= 0 && atoi(ptr) > 10) return;
-
-
-
-            roomba->drive(speed, rot);
-            sleep(atoi(ptr));
-            roomba->drive(0,0);
-            break;
-        case 'S' :
-            std::cout << "Spin Seconds " << ptr << std::endl;
-
-            if (atoi(ptr) <= 0 && atoi(ptr) > 10) return;
-            roomba->spin(Roomba::CLOCKWISE, speed);
-            sleep(atoi(ptr));
-            roomba->spin(Roomba::CLOCKWISE, 0);
-            break;
+    if (command.compare("DRIVE") == 0) {
+        roomba->drive(velocity, angle);
+        sleep(seconds);
+        roomba->drive(0,0);
+    }
+    else if (command.compare("SPIN") == 0) {
+        roomba->spin(Roomba::COUNTER_CLOCKWISE, velocity);
+        sleep(seconds);
+        roomba->spin(Roomba::COUNTER_CLOCKWISE, 0);
     }
 }
 
