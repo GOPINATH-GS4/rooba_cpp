@@ -5,6 +5,7 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <csignal>
+#include <math.h>
 #include <string.h>
 #include <strings.h>
 #include <sys/types.h>
@@ -59,7 +60,7 @@ void eventHandler(char *s) {
                     seconds = atoi(token.c_str());
 
                 if (isDistance) {
-                    seconds = (useconds_t) ((distance * 10) / abs(velocity) * 1000000);
+                    seconds = (useconds_t) ((distance * 10) / abs(velocity) * pow(10,6));
                 }
                 std::cout << "distance  " << distance << std::endl;
                 std::cout << "seconds  " << seconds << std::endl;
@@ -82,6 +83,8 @@ void eventHandler(char *s) {
         usleep(seconds);
         roomba->spin(Roomba::COUNTER_CLOCKWISE, 0);
     }
+
+    std::cout << "Command complete" << std::endl;
 }
 
 int main(int argc, char **argv) {
