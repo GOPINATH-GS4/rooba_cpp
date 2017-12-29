@@ -22,7 +22,7 @@ void eventHandler(char *s) {
     int velocity = -1;
     int angle = -1;
     int distance = -1;
-    int degree = -1;
+    double degree = -1;
     useconds_t seconds = -1;
     double sec;
     bool isDistance, isDegree;
