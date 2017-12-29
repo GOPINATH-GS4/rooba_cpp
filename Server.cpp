@@ -55,6 +55,7 @@ void eventHandler(char *s) {
                 isDistance = token == "D" ? true : false;
                 isDegree = token == "E" ? true : false;
                 std::cout << "isDistance " << isDistance << std::endl;
+                std::cout << "isDegree " << isDegree << std::endl;
                 break;
             case 4:
                 if (isDistance)
@@ -72,6 +73,7 @@ void eventHandler(char *s) {
                     seconds = (useconds_t) (sec * pow(10,6));
                 }
                 std::cout << "distance  " << distance << std::endl;
+                std::cout << "degree  " << degree << std::endl;
                 std::cout << "seconds  " << seconds << std::endl;
                 std::cout << "sec  " << sec << std::endl;
                 break;
@@ -79,7 +81,6 @@ void eventHandler(char *s) {
                 break;
         }
         i++;
-        std::cout << token << std::endl;
         message.erase(0, pos + delimiter.length());
     }
 
