@@ -23,9 +23,9 @@ void eventHandler(char *s) {
     int angle = -1;
     int distance = -1;
     double degree = -1;
-    useconds_t seconds = -1;
+    useconds_t seconds = 0;
     double sec;
-    bool isDistance, isDegree;
+    bool isDistance = false, isDegree = false;
     std::string command;
     std::string message(s);
     std::string delimiter = ":";
@@ -52,8 +52,8 @@ void eventHandler(char *s) {
                 std::cout << "Angle " << angle << std::endl;
                 break;
             case 3:
-                isDistance = token == "D" ? true : false;
-                isDegree = token == "E" ? true : false;
+                isDistance = token == "D";
+                isDegree = token == "E";
                 std::cout << "isDistance " << isDistance << std::endl;
                 std::cout << "isDegree " << isDegree << std::endl;
                 break;
@@ -146,7 +146,7 @@ int main(int argc, char **argv) {
         int pid = fork();
 
         if (pid < 0) {
-            perror("ERROR on fork");
+            perror("ERROR forking");
             exit(1);
         }
 
