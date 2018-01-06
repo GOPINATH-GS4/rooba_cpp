@@ -64,6 +64,9 @@ int main(int argc, char **argv) {
         perror("ERROR writing to socket");
         exit(1);
     }
+    char buffer[1024];
+    memset(buffer, 0x00, sizeof(buffer));
+    read(sockfd, buffer, sizeof(buffer));
     close(sockfd);
     return 0;
 }

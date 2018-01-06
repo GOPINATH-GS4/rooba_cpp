@@ -101,7 +101,8 @@ void eventHandler(char *s) {
 int main(int argc, char **argv) {
 
     if (argc < 2) {
-        std::cout << "Usage " << argv[0] << " port" << std::endl;
+        std::cout << "Usage " << argv[0] << " port [roomba dev (optional)]" << std::endl;
+        std::cout << "\t Example ./server 12345 /dev/ttyUSB0" << argv[0] << " port [roomba dev]" << std::endl;
         return (1);
     }
 
@@ -109,12 +110,12 @@ int main(int argc, char **argv) {
     socklen_t clilen;
     int port = atoi(argv[1]);
     struct sockaddr_in serv_addr, cli_addr;
-
+    char *device = const_cast<char *>((argc > 2) ? argv[2] : "/dev/ttyUSB0");
     if ((port > 65535) || (port < 2000)) {
         std::cerr << "Please enter a port number between 2000 - 65535" << std::endl;
         return 0;
     }
-    roomba = new Roomba((char *) "/dev/ttyUSB0", B115200);
+    roomba = new Roomba(device, B115200);
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (sockfd < 0) {
@@ -199,6 +200,7 @@ void processRequest(int sockfd, void (*f)(char *)) {
             index++;
             buffer[index] = 0x00;
             //if (index) printf("Writing... %s\n", buffer);
+            write(sockfd, "__DONE__", strlen("__DONE__"));
             f(buffer);
 
         }
